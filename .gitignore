@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+my_project_env/
+
+# Jupyter/Kaggle
+.ipynb_checkpoints/
+*.ipynb
+
+# Output files
+*.png
+*.gif
+*.mp4
+*.npy
+*.npz
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# PDF references (copyrighted, do not commit)
+*.pdf
