@@ -15,6 +15,7 @@ my_project_env/
 # Jupyter/Kaggle
 .ipynb_checkpoints/
 *.ipynb
+!kaggle_runner.ipynb
 
 # Output files
 *.png

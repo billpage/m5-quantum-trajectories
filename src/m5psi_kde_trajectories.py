@@ -33,7 +33,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.colors import Normalize
-import time, warnings, shutil
+import time, warnings
+from m5_utils import output_path
 warnings.filterwarnings("ignore")
 
 # ═══════════════════════════════════════════════════════════════════
@@ -628,7 +629,7 @@ def main():
         method_label='M5-original',
         color_left='#66ccff', color_right='#ff9966',
         Np=NP, K=K_CAND)
-    fig_m5.savefig("/home/claude/traj_m5orig.png", dpi=150, bbox_inches="tight")
+    fig_m5.savefig(output_path("traj_m5orig.png"), dpi=150, bbox_inches="tight")
     plt.close(fig_m5)
     print(" done")
 
@@ -639,7 +640,7 @@ def main():
         method_label=f'M5ψ-KDE (σ={SIGMA_KDE})',
         color_left='#44bbff', color_right='#ff6633',
         Np=NP, K=K_CAND)
-    fig_kde.savefig("/home/claude/traj_m5psi_kde.png", dpi=150, bbox_inches="tight")
+    fig_kde.savefig(output_path("traj_m5psi_kde.png"), dpi=150, bbox_inches="tight")
     plt.close(fig_kde)
     print(" done")
 
@@ -647,13 +648,9 @@ def main():
     print("  Figure 3: comparison figure…", end="", flush=True)
     fig_cmp, mean5, mean_kde = build_comparison_figure(
         rho_ref, ts_ref, m5, m5k, NP, K_CAND, t_m5, t_kde)
-    fig_cmp.savefig("/home/claude/traj_comparison.png", dpi=150, bbox_inches="tight")
+    fig_cmp.savefig(output_path("traj_comparison.png"), dpi=150, bbox_inches="tight")
     plt.close(fig_cmp)
     print(" done")
-
-    # ── Copy outputs ─────────────────────────────────────────────
-    for f in ("traj_m5orig.png", "traj_m5psi_kde.png", "traj_comparison.png"):
-        shutil.copy2(f"/home/claude/{f}", f"/mnt/user-data/outputs/{f}")
 
     print(f"""
 ╔══════════════════════════════════════════════════════════════════╗

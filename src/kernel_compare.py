@@ -16,6 +16,7 @@ convention fix applied.
 
 import numpy as np
 import time, sys, os
+from m5_utils import output_path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -452,8 +453,6 @@ def plot_comparison(results, psi_ref, ts_ref, x_grid, dx,
 # ═══ Main ════════════════════════════════════════════════════════════
 
 def main():
-    os.makedirs("/mnt/user-data/outputs", exist_ok=True)
-    
     print("=" * 65)
     print("  Multi-Kernel Swarmalator Comparison")
     print("  Kernels: Gaussian, Quintic B-spline, Compact Rational")
@@ -507,7 +506,7 @@ def main():
     
     plot_comparison(results_ho, psi_ref, ts_ref, x_grid, dx,
                     f'HO Ground State (Np={Np})',
-                    '/mnt/user-data/outputs/kernel_compare_ho.png', V_ho)
+                    output_path('kernel_compare_ho.png'), V_ho)
     
     # ══ TEST 2: Cat State ══════════════════════════════════════════
     print("\n" + "─" * 55)
@@ -550,7 +549,7 @@ def main():
     
     plot_comparison(results_cat, psi_ref_c, ts_ref_c, x_grid_c, dx_c,
                     f'Cat State Collision (Np={Np_cat})',
-                    '/mnt/user-data/outputs/kernel_compare_cat.png', V_cat)
+                    output_path('kernel_compare_cat.png'), V_cat)
     
     # ══ Summary ════════════════════════════════════════════════════
     print("\n" + "=" * 65)

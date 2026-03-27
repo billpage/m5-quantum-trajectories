@@ -29,6 +29,7 @@ Usage:
 """
 
 import sys, os, time, warnings, argparse
+from m5_utils import output_path
 warnings.filterwarnings("ignore")
 
 # ═══════════════════════════════════════════════════════════════════
@@ -553,8 +554,6 @@ def main():
     print(f"  Backend: {backend_name}")
     print("=" * 65)
 
-    os.makedirs("/mnt/user-data/outputs", exist_ok=True)
-
     cases = make_test_cases()
     if args.test:
         cases = [(t, l, p, v, d) for t, l, p, v, d in cases if t == args.test]
@@ -611,7 +610,7 @@ def main():
         print(f"  done ({m5['time']:.1f}s)")
 
         # Plot
-        fname = f"/mnt/user-data/outputs/m5_swarmalator_{tag}.png"
+        fname = output_path(f"m5_swarmalator_{tag}.png")
         mean_err = plot_results(
             psi_ref, ts_ref, x_grid, dx, m5, label, fname, xp)
         results[tag] = dict(err=mean_err, time=m5['time'])

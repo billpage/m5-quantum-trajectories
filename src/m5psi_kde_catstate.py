@@ -49,7 +49,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-import time, shutil, warnings
+import time, warnings
+from m5_utils import output_path
 warnings.filterwarnings("ignore")
 
 
@@ -849,21 +850,21 @@ def main():
     # ── Figure 1: Three-way comparison ───────────────────────────
     print("\n  Figure 1: 3-way comparison…", end="", flush=True)
     fig1 = fig_comparison(rho_ref, psi_ref, ts_ref, m5, m5p, m5k, Np, K, sigma_kde)
-    fig1.savefig("/home/claude/fig1_comparison.png", dpi=150, bbox_inches="tight")
+    fig1.savefig(output_path("fig1_comparison.png"), dpi=150, bbox_inches="tight")
     plt.close(fig1)
     print(" done")
 
     # ── Figure 3: Node diagnostics ───────────────────────────────
     print("  Figure 3: node diagnostics…", end="", flush=True)
     fig3 = fig_node_diagnostics(rho_ref, psi_ref, ts_ref, m5k, sigma_kde)
-    fig3.savefig("/home/claude/fig3_node_diagnostics.png", dpi=150, bbox_inches="tight")
+    fig3.savefig(output_path("fig3_node_diagnostics.png"), dpi=150, bbox_inches="tight")
     plt.close(fig3)
     print(" done")
 
     # ── Figure 4: Field comparison ───────────────────────────────
     print("  Figure 4: field comparison…", end="", flush=True)
     fig4 = fig_fields(rho_ref, psi_ref, ts_ref, m5, m5p, m5k, sigma_kde)
-    fig4.savefig("/home/claude/fig4_fields.png", dpi=150, bbox_inches="tight")
+    fig4.savefig(output_path("fig4_fields.png"), dpi=150, bbox_inches="tight")
     plt.close(fig4)
     print(" done")
 
@@ -882,15 +883,9 @@ def main():
     print("  Figure 2: σ sweep…", end="", flush=True)
     fig2, sig_opt, err_opt = fig_sigma_sweep(
         rho_ref, ts_ref, sigma_list, results_sweep, err_m5, err_m5p, Np, K)
-    fig2.savefig("/home/claude/fig2_sigma_sweep.png", dpi=150, bbox_inches="tight")
+    fig2.savefig(output_path("fig2_sigma_sweep.png"), dpi=150, bbox_inches="tight")
     plt.close(fig2)
     print(f" done  →  optimal σ = {sig_opt}")
-
-    # ── Copy outputs ─────────────────────────────────────────────
-    figs = ["fig1_comparison.png", "fig2_sigma_sweep.png",
-            "fig3_node_diagnostics.png", "fig4_fields.png"]
-    for f in figs:
-        shutil.copy2(f"/home/claude/{f}", f"/mnt/user-data/outputs/{f}")
 
     # ── Summary ──────────────────────────────────────────────────
     print(f"""

@@ -47,7 +47,8 @@ Usage
     python method5_nd.py [--gpu] [--Np 8000] [--K 48] [--batch 2000]
 """
 
-import argparse, time, warnings, shutil, sys
+import argparse, time, warnings, sys
+from m5_utils import output_path
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -1042,7 +1043,7 @@ def main():
     fig1 = compare_figure_1d(
         x, ts_fft, rho_ref, m4, m5_nd, gp, pp,
         "D: Cat state (colliding Gaussians) — 1-D ND test", Np, K)
-    fig1.savefig("/home/claude/m5nd_caseD_comparison.png",
+    fig1.savefig(output_path("m5nd_caseD_comparison.png"),
                  dpi=150, bbox_inches='tight')
     plt.close(fig1)
 
@@ -1050,14 +1051,9 @@ def main():
     fig2 = trajectory_figure_1d(
         x, ts_fft, rho_ref, m5_nd, gp, pp,
         x0_cat, p0_cat, s0_cat, Np, K)
-    fig2.savefig("/home/claude/m5nd_caseD_trajectories.png",
+    fig2.savefig(output_path("m5nd_caseD_trajectories.png"),
                  dpi=150, bbox_inches='tight')
     plt.close(fig2)
-
-    # ── Copy to outputs ──────────────────────────────────────────────
-    for f in ("m5nd_caseD_comparison.png", "m5nd_caseD_trajectories.png"):
-        shutil.copy2(f"/home/claude/{f}", f"/mnt/user-data/outputs/{f}")
-        print(f"  Saved: {f}")
 
     print(f"\n{bar}")
     print("  Done — Method 5-ND cat-state validation complete.")

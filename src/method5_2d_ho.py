@@ -25,7 +25,8 @@ Outputs
   4. m5_2d_animation.mp4   — Animated density + live particle motion
 """
 
-import sys, time, shutil, warnings
+import sys, time, warnings
+from m5_utils import output_path
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -620,12 +621,14 @@ def fig_trajectories(m5, pp, gp, Np, K, x0, y0):
 
 def make_animation(m5, rho_ref, ts_ref, pp, gp, Np, K,
                    n_frames=120, trail_len=20,
-                   out_path="/home/claude/m5_2d_animation.mp4"):
+                   out_path=None):
     """
     Animated MP4 with four panels:
       TL: Exact density (FFT)         TR: Method-5-ND density
       BL: M5 particles + density bg   BR: Trajectory trails (last trail_len steps)
     """
+    if out_path is None:
+        out_path = output_path("m5_2d_animation.mp4")
     traj_Q  = m5['traj_Q']    # (Nt+1, N_track, 2)
     traj_t  = m5['traj_t']    # (Nt+1,)
     N_track = traj_Q.shape[1]
@@ -870,17 +873,17 @@ def main():
     print(f"\n  Generating figures …")
 
     fig1 = fig_comparison(x, ts_ref, rho_ref, m5, pp, gp, Np, K)
-    fig1.savefig("/home/claude/m5_2d_comparison.png", dpi=140, bbox_inches='tight')
+    fig1.savefig(output_path("m5_2d_comparison.png"), dpi=140, bbox_inches='tight')
     plt.close(fig1)
     print("    ✓ m5_2d_comparison.png")
 
     fig2 = fig_marginals(x, ts_ref, rho_ref, m5['rho'], pp, gp)
-    fig2.savefig("/home/claude/m5_2d_marginals.png", dpi=140, bbox_inches='tight')
+    fig2.savefig(output_path("m5_2d_marginals.png"), dpi=140, bbox_inches='tight')
     plt.close(fig2)
     print("    ✓ m5_2d_marginals.png")
 
     fig3 = fig_trajectories(m5, pp, gp, Np, K, x0, y0)
-    fig3.savefig("/home/claude/m5_2d_trajectories.png", dpi=140, bbox_inches='tight')
+    fig3.savefig(output_path("m5_2d_trajectories.png"), dpi=140, bbox_inches='tight')
     plt.close(fig3)
     print("    ✓ m5_2d_trajectories.png")
 
@@ -888,16 +891,8 @@ def main():
     print(f"  Generating animation ({args.frames} frames) …")
     anim_path = make_animation(
         m5, rho_ref, ts_ref, pp, gp, Np, K,
-        n_frames=args.frames, trail_len=args.trail,
-        out_path="/home/claude/m5_2d_animation.mp4"
+        n_frames=args.frames, trail_len=args.trail
     )
-
-    # ── Copy to outputs ───────────────────────────────────────────────
-    outputs = ["m5_2d_comparison.png", "m5_2d_marginals.png",
-               "m5_2d_trajectories.png", "m5_2d_animation.mp4"]
-    for f in outputs:
-        shutil.copy2(f"/home/claude/{f}", f"/mnt/user-data/outputs/{f}")
-        print(f"    ✓ Saved: {f}")
 
     print(f"\n{bar}")
     print(f"  Done — 2-D QHO simulation complete.")
