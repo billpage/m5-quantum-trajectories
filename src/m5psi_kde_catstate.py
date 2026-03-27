@@ -51,6 +51,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import time, warnings
 from m5_utils import output_path
+from m5_fft_ref import schrodinger_fft_1d
 warnings.filterwarnings("ignore")
 
 
@@ -68,7 +69,6 @@ class GP:
     dx = (xR - xL) / Nx
     dt = T / Nt
     x  = np.linspace(xL, xR, Nx, endpoint=False)
-    k  = 2*np.pi * np.fft.fftfreq(Nx, dx)
     t_arr = np.linspace(0, T, Nt+1)
 
 qp = QP(); gp = GP()
@@ -97,30 +97,16 @@ def cat_state(x, x0=4.0, p0=3.0, s0=0.7, hbar=1.0):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Schrödinger FFT reference
+# Schrödinger FFT reference (via m5_fft_ref)
 # ═══════════════════════════════════════════════════════════════════
 
 def schrodinger_ref(psi0, save_every=10):
-    """Split-step FFT Schrödinger solver (V=0 free case)."""
-    hbar, m = qp.hbar, qp.m
-    Vx = np.zeros(gp.Nx)
-    half_V = np.exp(-1j * Vx * gp.dt / (2*hbar))
-    T_k    = np.exp(-1j * hbar * gp.k**2 * gp.dt / (2*m))
-    psi = psi0.copy().astype(complex)
-
-    idx_save = list(range(0, gp.Nt+1, save_every))
-    Ns = len(idx_save)
-    psi_h = np.zeros((Ns, gp.Nx), dtype=complex)
-    si = 0
-    if 0 in idx_save:
-        psi_h[si] = psi.copy(); si += 1
-    for n in range(1, gp.Nt+1):
-        psi = half_V * psi
-        psi = np.fft.ifft(T_k * np.fft.fft(psi))
-        psi = half_V * psi
-        if n in idx_save and si < Ns:
-            psi_h[si] = psi.copy(); si += 1
-    t_save = gp.t_arr[idx_save[:Ns]]
+    """Split-step FFT Schrödinger solver (V=0 free case).
+    Returns (rho_snaps, psi_snaps, t_snaps)."""
+    V = np.zeros(gp.Nx)
+    psi_h, t_save = schrodinger_fft_1d(psi0, V, gp.x, gp.T, gp.Nt,
+                                        hbar=qp.hbar, mass=qp.m,
+                                        save_every=save_every)
     return np.abs(psi_h)**2, psi_h, t_save
 
 

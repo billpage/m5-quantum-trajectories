@@ -17,6 +17,7 @@ convention fix applied.
 import numpy as np
 import time, sys, os
 from m5_utils import output_path
+from m5_fft_ref import schrodinger_fft_1d
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -188,20 +189,9 @@ def gh_nodes_weights(K_gh):
 # ═══ FFT reference ═══════════════════════════════════════════════════
 
 def schrodinger_ref(psi0, V, x, T, Nt, save_every):
-    Nx = len(x); dx = x[1]-x[0]; dt = T/Nt
-    k = 2*np.pi*np.fft.fftfreq(Nx, dx)
-    hV = np.exp(-1j*V*dt/(2*HBAR))
-    Tk = np.exp(-1j*HBAR*k**2*dt/(2*MASS))
-    psi = psi0.astype(np.complex128).copy()
-    snaps = []; ts = []
-    for n in range(Nt+1):
-        if n % save_every == 0:
-            snaps.append(psi.copy()); ts.append(n*dt)
-        if n < Nt:
-            psi = hV * psi
-            psi = np.fft.ifft(Tk * np.fft.fft(psi))
-            psi = hV * psi
-    return np.array(snaps), np.array(ts)
+    """Thin wrapper around m5_fft_ref.schrodinger_fft_1d."""
+    return schrodinger_fft_1d(psi0, V, x, T, Nt,
+                              hbar=HBAR, mass=MASS, save_every=save_every)
 
 
 # ═══ Main swarmalator with kernel selection ══════════════════════════

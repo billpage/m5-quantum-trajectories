@@ -35,6 +35,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.colors import Normalize
 import time, warnings
 from m5_utils import output_path
+from m5_fft_ref import schrodinger_fft_1d
 warnings.filterwarnings("ignore")
 
 # ═══════════════════════════════════════════════════════════════════
@@ -50,7 +51,6 @@ T_TOTAL = 3.0;  NT = 3000
 DX = (XR - XL) / NX
 DT = T_TOTAL / NT
 X_GRID = np.linspace(XL, XR, NX, endpoint=False)
-K_GRID = 2 * np.pi * np.fft.fftfreq(NX, DX)
 T_ARR  = np.linspace(0, T_TOTAL, NT + 1)
 
 # Cat-state parameters
@@ -99,25 +99,15 @@ def init_particles(psi0, Np, seed=42):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Schrödinger FFT reference  (V = 0)
+# Schrödinger FFT reference  (V = 0, via m5_fft_ref)
 # ═══════════════════════════════════════════════════════════════════
 
 def schrodinger_ref(psi0, save_every=SAVE_EVERY):
-    half_V = np.ones(NX, dtype=complex)            # V = 0
-    T_k    = np.exp(-1j * HBAR * K_GRID**2 * DT / (2*M))
-    psi = psi0.copy().astype(complex)
-
-    idx = list(range(0, NT+1, save_every))
-    psi_h = np.zeros((len(idx), NX), dtype=complex)
-    si = 0
-    if 0 in idx: psi_h[si] = psi.copy(); si += 1
-
-    for n in range(1, NT+1):
-        psi = np.fft.ifft(T_k * np.fft.fft(psi))
-        if n in idx and si < len(idx):
-            psi_h[si] = psi.copy(); si += 1
-
-    ts = T_ARR[idx[:len(idx)]]
+    """Returns (rho_snaps, psi_snaps, t_snaps)."""
+    V = np.zeros(NX)
+    psi_h, ts = schrodinger_fft_1d(psi0, V, X_GRID, T_TOTAL, NT,
+                                    hbar=HBAR, mass=M,
+                                    save_every=save_every)
     return np.abs(psi_h)**2, psi_h, ts
 
 

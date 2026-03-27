@@ -49,6 +49,7 @@ Usage
 
 import argparse, time, warnings, sys
 from m5_utils import output_path
+from m5_fft_ref import schrodinger_fft_1d as _schrodinger_fft_1d
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -546,36 +547,14 @@ def _interp_nd_xp(sqrt_rho_flat, Q_flat, gp: GridParams, xp):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def schrodinger_fft_1d(psi0, V_func_1d, pp, gp, save_every=10):
-    """Split-operator FFT reference solution in 1-D.
+    """Split-operator FFT reference solution in 1-D (via m5_fft_ref).
     V_func_1d: callable taking a 1-D array x, returning 1-D array V(x).
     """
-    hbar, m = pp.hbar, pp.m
-    dx      = gp.dq
-    dt      = gp.dt
-    x       = gp.axes[0]
-    k       = 2 * np.pi * np.fft.fftfreq(gp.Ng, dx)
-    Vx      = V_func_1d(x)
-    half_V  = np.exp(-1j * Vx * dt / (2 * hbar))
-    T_k     = np.exp(-1j * hbar * k**2 * dt / (2 * m))
-    psi     = psi0.copy().astype(complex)
-
-    idx_save = list(range(0, gp.Nt + 1, save_every))
-    Ns = len(idx_save)
-    psi_h = np.zeros((Ns, gp.Ng), dtype=complex)
-    si = 0
-    if 0 in idx_save:
-        psi_h[si] = psi.copy(); si += 1
-
-    for n in range(1, gp.Nt + 1):
-        psi = half_V * psi
-        psi = np.fft.ifft(T_k * np.fft.fft(psi))
-        psi = half_V * psi
-        if n in idx_save and si < Ns:
-            psi_h[si] = psi.copy(); si += 1
-
-    for j in range(si, Ns):
-        psi_h[j] = psi.copy()
-    return psi_h, gp.t_arr[idx_save[:Ns]]
+    x = gp.axes[0]
+    V_grid = V_func_1d(x)
+    return _schrodinger_fft_1d(psi0, V_grid, x, gp.T, gp.Nt,
+                               hbar=pp.hbar, mass=pp.m,
+                               save_every=save_every)
 
 
 def method4_1d(psi0, V_func, pp, gp, Np=10000, seed=42, save_every=10):

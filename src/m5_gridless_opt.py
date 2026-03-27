@@ -30,6 +30,7 @@ Usage:
 
 import sys, os, time, warnings, argparse
 from m5_utils import output_path
+from m5_fft_ref import schrodinger_fft_1d
 warnings.filterwarnings("ignore")
 
 # ═══════════════════════════════════════════════════════════════════
@@ -192,26 +193,13 @@ def gh_nodes_weights(K_gh):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Schrödinger FFT reference solver (always CPU)
+# Schrödinger FFT reference solver (always CPU, via m5_fft_ref)
 # ═══════════════════════════════════════════════════════════════════
 
 def schrodinger_ref(psi0_grid, V_grid, x, T, Nt, save_every):
     """Split-operator FFT. Returns (psi_snaps, t_snaps) on CPU."""
-    import numpy as np
-    Nx = len(x); dx = x[1] - x[0]; dt = T / Nt
-    k = 2 * np.pi * np.fft.fftfreq(Nx, dx)
-    half_V = np.exp(-1j * V_grid * dt / (2 * HBAR))
-    T_k = np.exp(-1j * HBAR * k**2 * dt / (2 * MASS))
-    psi = psi0_grid.astype(np.complex128).copy()
-    snaps = []; ts = []
-    for n in range(Nt + 1):
-        if n % save_every == 0:
-            snaps.append(psi.copy()); ts.append(n * dt)
-        if n < Nt:
-            psi = half_V * psi
-            psi = np.fft.ifft(T_k * np.fft.fft(psi))
-            psi = half_V * psi
-    return np.array(snaps), np.array(ts)
+    return schrodinger_fft_1d(psi0_grid, V_grid, x, T, Nt,
+                              hbar=HBAR, mass=MASS, save_every=save_every)
 
 
 # ═══════════════════════════════════════════════════════════════════
