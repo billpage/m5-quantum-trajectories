@@ -386,10 +386,10 @@ def init_from_psi2d(psi0, gp: GridParams, pp: PhysicsParams, Np: int, seed: int 
     Q0 = np.stack([x_smp, y_smp], axis=1).astype(np.float64)
     Q0 = np.clip(Q0, gp.qL + dq, gp.qR - dq)
 
-    # Phase at each particle from grid
-    S_grid = pp.hbar * np.unwrap(np.angle(psi0), axis=0)
-    S_grid = np.unwrap(S_grid, axis=1)
-    S0 = interp2d(S_grid, Q0, gp)
+    # Phase at each particle: interpolate Re/Im separately, then take angle
+    psi_re = interp2d(psi0.real, Q0, gp)
+    psi_im = interp2d(psi0.imag, Q0, gp)
+    S0 = pp.hbar * np.angle(psi_re + 1j * psi_im)
 
     return Q0, S0
 

@@ -572,8 +572,8 @@ def method4_1d(psi0, V_func, pp, gp, Np=10000, seed=42, save_every=10):
     rho0 = np.abs(psi0)**2
     cdf  = np.cumsum(rho0) * dx;  cdf /= cdf[-1]
     X    = np.interp(rng.uniform(size=Np), cdf, x)
-    S0   = hbar * np.unwrap(np.angle(psi0))
-    Sp   = np.interp(X, x, S0)
+    psi_at = np.interp(X, x, psi0.real) + 1j * np.interp(X, x, psi0.imag)
+    Sp   = hbar * np.angle(psi_at)
 
     idx_save = list(range(0, gp.Nt + 1, save_every))
     Ns   = len(idx_save)
@@ -655,8 +655,8 @@ def init_from_psi1d(psi0, gp: GridParams, pp: PhysicsParams, Np: int, seed: int 
     rho0 = np.abs(psi0)**2
     cdf  = np.cumsum(rho0) * dx;  cdf /= cdf[-1]
     X    = np.interp(rng.uniform(size=Np), cdf, x)
-    S0   = pp.hbar * np.unwrap(np.angle(psi0))
-    Sp   = np.interp(X, x, S0)
+    psi_at = np.interp(X, x, psi0.real) + 1j * np.interp(X, x, psi0.imag)
+    Sp   = pp.hbar * np.angle(psi_at)
     return X[:, None].astype(np.float64), Sp.astype(np.float64)
 
 

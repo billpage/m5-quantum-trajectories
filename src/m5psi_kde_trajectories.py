@@ -93,8 +93,8 @@ def init_particles(psi0, Np, seed=42):
     rho0 = np.abs(psi0)**2
     cdf = np.cumsum(rho0) * DX;  cdf /= cdf[-1]
     X  = np.interp(rng.uniform(size=Np), cdf, X_GRID)
-    S0 = HBAR * np.unwrap(np.angle(psi0))
-    Sp = np.interp(X, X_GRID, S0)
+    psi_at = np.interp(X, X_GRID, psi0.real) + 1j * np.interp(X, X_GRID, psi0.imag)
+    Sp = HBAR * np.angle(psi_at)
     return X, Sp
 
 
