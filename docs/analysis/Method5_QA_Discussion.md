@@ -10,10 +10,12 @@ This document records a series of questions and answers exploring the conceptual
 
 #### Key Project References
 
+> **Note:** This discussion was written against early versions of the algorithm documents (`Method5_Mathematical_Analysis.md` v1 and `method5_selection.py`) that predate the current repository. Section references below (§3, §7, etc.) refer to those earlier documents. The current algorithm specification is `NelsonMechanics_SchrodingerBridge_Algorithm.md`; the proofs and derivations cited here have been consolidated there and in the companion supplement.
+
 | Document | Description |
 |----------|-------------|
-| `Method5_Mathematical_Analysis.md` | Complete mathematical derivation and proof that √ρ-selection induces the correct osmotic drift |
-| `method5_selection.py` | Python implementation comparing Method 5 against Method 4 (explicit osmotic drift) and the Schrödinger FFT reference |
+| `Method5_Mathematical_Analysis.md` | Complete mathematical derivation and proof that √ρ-selection induces the correct osmotic drift (historical, not in repository; superseded by `NelsonMechanics_SchrodingerBridge_Algorithm.md`) |
+| `method5_selection.py` | Python implementation comparing Method 5 against Method 4 (explicit osmotic drift) and the Schrödinger FFT reference (historical, not in repository; superseded by `m5psi_kde_catstate.py`) |
 | `FBSDE_SchrodingerBridge_Nelson_Holland.md` | The triangular relationship between FBSDEs, Schrödinger bridges, Nelson's stochastic mechanics, and Holland's bi-HJ theory |
 | `Holland_Nelson_FokkerPlanck_Analysis.md` | Detailed comparative analysis of Holland's and Nelson's formulations, focusing on the Fokker–Planck pair and coupled SDEs |
 | `HollandEliminating2111_09235.pdf` | Holland (2021), "Eliminating the wavefunction from quantum dynamics: the bi-Hamilton–Jacobi theory" |

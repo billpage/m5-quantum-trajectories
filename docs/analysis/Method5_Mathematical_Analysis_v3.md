@@ -543,7 +543,7 @@ The pattern: **each new weight function applied to the same GH nodes opens a new
 
 ### 11.1 The Ground State Challenge
 
-The HO ground state has been the most persistent challenge for M5v2: the adaptive σ_kde controller hits ceilings and shows residual instability. The diagnostic tool (gs_ho_diagnostic.py) was designed to identify whether spurious phase gradients or incorrect initialization cause the instability.
+The HO ground state has been the most persistent challenge for M5v2: the adaptive σ_kde controller hits ceilings and shows residual instability. The diagnostic tool (gs_ho_diagnostic.py, historical, not in repository) was designed to identify whether spurious phase gradients or incorrect initialization cause the instability.
 
 ### 11.2 What v3 Provides
 
@@ -644,7 +644,7 @@ The anti-diffusive Fokker–Planck equation is never solved directly. Its inform
 
 ### Project Knowledge Cross-References
 
-- `Method5_Mathematical_Analysis_v2.md` — v2 dual-readout theory (Theorems 1–2), variance analysis, antithetic candidates
+- `Method5_Mathematical_Analysis_v2.md` — v2 dual-readout theory (Theorems 1–2), variance analysis, antithetic candidates (historical, not in repository)
 - `Holland_Nelson_FokkerPlanck_Analysis.md` — Comparative analysis of Holland and Nelson, coupled SDE system, Fokker–Planck pair
 - `FBSDE_SchrodingerBridge_Nelson_Holland.md` — Triangular relationship between FBSDEs, bridges, and bi-HJ
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Wasserstein dynamics

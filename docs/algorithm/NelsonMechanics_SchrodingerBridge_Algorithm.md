@@ -719,8 +719,8 @@ Stein's characterising identity E[f′(Z) − Zf(Z)] = 0 for Gaussian Z encodes 
 
 - `NelsonMechanics_SchrodingerBridge_Algorithm.md` — **This document**: core algorithm, theorems, GH quadrature, backward channel, variance analysis, numerical validation
 - `NelsonMechanics_SchrodingerBridge_Supplement.md` — **Companion supplement** (§§17–25): Hackebill–Poirier classification, Method 7 lessons, Wasserstein dynamics, bridge interpretation, open questions
-- `Method5_Mathematical_Analysis.md` — Original v1 theory: √ρ-selection theorem proof, free Gaussian test (superseded)
-- `Method5_Mathematical_Analysis_v2.md` — Original v2: dual-readout theory, random candidate formulation (superseded)
+- `Method5_Mathematical_Analysis.md` — Original v1 theory: √ρ-selection theorem proof, free Gaussian test (historical, not in repository; superseded)
+- `Method5_Mathematical_Analysis_v2.md` — Original v2: dual-readout theory, random candidate formulation (historical, not in repository; superseded)
 - `Method5_Mathematical_Analysis_v3.md` — v3 first half: log-density, mirror particles, GH implementation (superseded)
 - `Method5_v3_second_half.md` — v3 second half: bridge/Wasserstein/classification (superseded by supplement)
 - `NelsonMechanics_SchrodingerBridge_Swarmalator.md` §§2–3 — ψ-KDE density estimator theory
