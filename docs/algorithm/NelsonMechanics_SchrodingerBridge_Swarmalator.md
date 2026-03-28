@@ -104,7 +104,7 @@ The division by √n removes one power of √ρ from the particle density (which
 
 **Normalization convention.** The definitions in §2.1 include the (1/Np) factor, so n_h → ρ as a proper probability density (∫ρ dx = 1). In the reference implementation `m5_gridless.py`, the 1/Np is omitted from the kernel sums: n = Σⱼ K_h(·) = Np · n_h. Since all quantities used in the algorithm — the velocity v = Im(j'/j), the selection probabilities ∝ √ρ, the WEIGH ratio M₊ — involve ratios where Np cancels, this convention has no effect on the dynamics. However, the absolute values of √ρ from the code are √Np times larger than the theoretical √ρ. If absolute ψ̂ values are needed (e.g. for comparison with an exact wave function), divide by Np: n_h = n/Np, j_h = j/Np.
 
-Unlike the grid-based CIC + `gaussian_filter1d` pipeline (M5psi_KDE_Analysis.md §4.1a), where the discrete convolution introduces a √dx scale factor requiring an explicit normalization step every time step, the gridless kernel sums use a properly normalized Gaussian kernel K_h with ∫K_h du = 1. The gridless ψ-KDE converges to ψ directly — no normalization step is needed.
+Unlike the grid-based CIC + `gaussian_filter1d` pipeline (`NelsonMechanics_SchrodingerBridge_Algorithm.md` §7.2 step 1b), where the discrete convolution introduces a √dx scale factor requiring an explicit normalization step every time step, the gridless kernel sums use a properly normalized Gaussian kernel K_h with ∫K_h du = 1. The gridless ψ-KDE converges to ψ directly — no normalization step is needed.
 
 ### 2.3 Derived Fields
 
@@ -291,7 +291,7 @@ Given ψ₀(x) (analytically or on a grid), the initial ensemble {Xₖ, Sₖ} is
 
    If ψ₀ is only on a grid, interpolate Re(ψ₀) and Im(ψ₀) separately to X_k, then take arg of the interpolated complex value. Do **not** use `np.unwrap(np.angle(ψ₀))` on the grid — this propagates floating-point noise from low-density tails into the bulk phase. No unwrapping is needed: particles sit where |ψ| is large, and the kernel sums use only cos(S/ℏ) and sin(S/ℏ), which are 2π-periodic.
 
-3. **Optional refinement** — for initial states with interference structure (nodes, dense fringes), L-BFGS-B optimization of particle positions starting from CDF quantiles can remove 40–68% of the remaining ψ-KDE variance. See M5psi_KDE_Analysis.md §12 for details.
+3. **Optional refinement** — for initial states with interference structure (nodes, dense fringes), L-BFGS-B minimization of ‖ψ̂ − ψ₀‖² starting from CDF quantile positions can remove 40–68% of the remaining ψ-KDE variance. The optimizer naturally finds node-avoiding, curvature-adapted placement. For smooth initial states (single Gaussians, well-separated packets) the improvement is marginal (~15%). For stochastic initialization, **systematic sampling** (single random offset u₀ ~ U(0, 1/Np), then u_k = u₀ + k/Np) provides nearly deterministic-quality results while preserving stochastic character.
 
 ### 7.2 Pseudocode
 

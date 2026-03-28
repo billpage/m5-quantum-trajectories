@@ -304,7 +304,7 @@ Given ψ₀(x) on a grid, the initial particle ensemble {X_k, S_k} is constructe
 
    Do **not** use `np.unwrap(np.angle(ψ₀))` on the grid — this propagates floating-point noise from low-density tails into the bulk phase. No unwrapping is needed: particles sit where |ψ| is large, and the CIC deposit uses only cos(S/ℏ) and sin(S/ℏ), which are 2π-periodic.
 
-See `M5psi_KDE_Analysis.md` §12 for the full analysis including optional position optimization for interference states.
+3. **Optional refinement** — for initial states with interference structure (nodes, dense fringes), L-BFGS-B minimization of ‖ψ̂ − ψ₀‖² starting from CDF quantile positions can remove 40–68% of the remaining ψ-KDE variance. The optimizer naturally finds node-avoiding, curvature-adapted placement. For smooth initial states (single Gaussians, well-separated packets) the improvement is marginal (~15%). For stochastic initialization, **systematic sampling** (single random offset u₀ ~ U(0, 1/Np), then u_k = u₀ + k/Np) provides nearly deterministic-quality results while preserving stochastic character.
 
 ### 7.2 Per-Time-Step Algorithm
 
@@ -317,7 +317,7 @@ INPUT: Ensemble {X_k, S_k}, k = 1,...,Np
     Sort particles. Reflect outermost 10–15% about distribution
     boundary to create augmented ensemble for KDE.
 
-1b. ψ-KDE DENSITY ESTIMATION  (see M5psi_KDE_Analysis.md §§2–4, 8 for full derivation)
+1b. ψ-KDE DENSITY ESTIMATION  (theory derivation: NelsonMechanics_SchrodingerBridge_Swarmalator.md §§2–3)
 
     CIC deposit: For each particle k, deposit to two nearest grid points
       with linear interpolation weights (1−α) and α, where
