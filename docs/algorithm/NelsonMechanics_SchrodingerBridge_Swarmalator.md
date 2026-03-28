@@ -29,7 +29,7 @@ The M5 algorithm (all versions) estimates fields on a spatial grid:
 3. **Selection weights:** interpolate √ρ from grid to candidate positions
 4. **Quantum potential:** finite differences of √ρ on grid, or GH WEIGH with grid-interpolated √ρ
 
-Each step introduces discretization error. The grid spacing dx limits spatial resolution. Interpolation from grid to particle positions smears sub-grid structure. Finite differences amplify noise. The ψ-KDE variant (M5psi_KDE_Analysis.md) improves steps 1–2 by smoothing in ψ-space, but still deposits onto and reads from a grid.
+Each step introduces discretization error. The grid spacing dx limits spatial resolution. Interpolation from grid to particle positions smears sub-grid structure. Finite differences amplify noise. The ψ-KDE variant (NelsonMechanics_SchrodingerBridge_Algorithm.md §7.2 step 1b) improves steps 1–2 by smoothing in ψ-space, but still deposits onto and reads from a grid.
 
 ### 1.2 The Swarmalator Alternative
 
@@ -245,7 +245,7 @@ The backward channel requires ln ρ at the candidate positions. Since step 4 of 
 
 No additional kernel sums are required — the backward channel comes free from the same ψ-KDE evaluation used for STEER and WEIGH.
 
-**Design note:** This uses the ψ-KDE density ρ̂ = |ψ̂|² = |j_h|²/n_h, consistent with the grid-based M5 (NelsonMechanics_SchrodingerBridge_Algorithm.md step 1b). An alternative would be ln n_h (the standard density KDE, ignoring phase information), which is smoother when phases are noisy but misses nodal structure. For single-branch states (Gaussians, coherent states), both give the same result. For multi-branch states with nodes, the ψ-KDE density is more physically correct — at nodes, |j| → 0 correctly drives ln ρ → −∞, reflecting the true ρ → 0. With accumulated phase noise, the coherence factor |j/n| < 1 causes systematic underestimation of ρ (M5psi_KDE_Analysis.md §9.5); this is a self-diagnostic feature rather than a defect.
+**Design note:** This uses the ψ-KDE density ρ̂ = |ψ̂|² = |j_h|²/n_h, consistent with the grid-based M5 (NelsonMechanics_SchrodingerBridge_Algorithm.md step 1b). An alternative would be ln n_h (the standard density KDE, ignoring phase information), which is smoother when phases are noisy but misses nodal structure. For single-branch states (Gaussians, coherent states), both give the same result. For multi-branch states with nodes, the ψ-KDE density is more physically correct — at nodes, |j| → 0 correctly drives ln ρ → −∞, reflecting the true ρ → 0. With accumulated phase noise, the coherence factor |j/n| < 1 causes systematic underestimation of ρ (§4.3 above); this is a self-diagnostic feature rather than a defect.
 
 The osmotic divergence is:
 
@@ -631,7 +631,7 @@ The single bandwidth parameter h controls all smoothing. The coherent averaging 
 
 - `NelsonMechanics_SchrodingerBridge_Algorithm.md` — Grid-based M5: core algorithm, theorems, GH quadrature, backward channel
 - `NelsonMechanics_SchrodingerBridge_Supplement.md` — Contextual analysis: Hackebill–Poirier, Wasserstein dynamics, bridge interpretation
-- `M5psi_KDE_Analysis.md` — ψ-KDE theory: j_h/√n_h construction, coherent vs incoherent, node behaviour
+- `NelsonMechanics_SchrodingerBridge_Algorithm.md` §7.2 step 1b — grid-based ψ-KDE implementation (CIC + Gaussian convolution)
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Fisher information
 - `QuantumSwarmalator_Algorithm.md` — Earlier swarmalator-ontology exploration
 - `project_summary.md` — te Vrugt et al. active matter analysis

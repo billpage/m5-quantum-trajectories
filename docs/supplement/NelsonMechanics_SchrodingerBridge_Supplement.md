@@ -340,7 +340,7 @@ The osmotic divergence readout provides a new diagnostic and potentially a new c
 
 ### 23.2 The ψ-KDE Pipeline
 
-The ψ-KDE density estimator (M5psi_KDE_Analysis.md) computes the wavefunction as a unified complex field ψ̂ = j_h/√n_h, where j_h is the complex current KDE and n_h is the standard density KDE. This approach naturally handles destructive interference at nodes (the complex current cancels) and has been validated as superior to separate density/phase estimation.
+The ψ-KDE density estimator (NelsonMechanics_SchrodingerBridge_Swarmalator.md §§2–3) computes the wavefunction as a unified complex field ψ̂ = j_h/√n_h, where j_h is the complex current KDE and n_h is the standard density KDE. This approach naturally handles destructive interference at nodes (the complex current cancels) and has been validated as superior to separate density/phase estimation.
 
 Integrating ψ-KDE with the updated framework should improve the log-density readout: better density estimates → better ln ρ → more accurate u' → more accurate Q̃. The ground state, where the density is smooth and well-resolved, is the natural first test.
 
@@ -438,6 +438,6 @@ The density evolves as a genuine dynamical object on Wasserstein space, with col
 - `Holland_Nelson_FokkerPlanck_Analysis.md` — Comparative analysis of Holland and Nelson, coupled SDE system, Fokker–Planck pair
 - `FBSDE_SchrodingerBridge_Nelson_Holland.md` — Triangular relationship between FBSDEs, bridges, and bi-HJ
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Wasserstein dynamics
-- `M5psi_KDE_Analysis.md` — ψ-KDE density estimator
+- `NelsonMechanics_SchrodingerBridge_Swarmalator.md` §§2–3 — ψ-KDE density estimator theory
 - `HackebillPoirier2602_21106v1.pdf` — Sparse ontology analysis, CHV vs DHV classification
 - `method7_math_analysis.md` — Two-species bi-HJ implementation, Q± sign verification

@@ -272,7 +272,7 @@ Mirror particles reduce the forward Q error by 2.6× in the bulk and 4× in the 
 
 ### 6.4 Mirror Particles with the ψ-KDE
 
-The mirror particle technique integrates naturally with the ψ-KDE density estimator (M5psi_KDE_Analysis.md). When depositing particles onto the CIC grid, the mirror particles are included in both the density (n) and complex-current (j) depositions, with appropriate phases. Since mirror particles lie outside the physical distribution boundary, their phase can be set to match the nearest real particle — the key requirement is that they contribute correctly to the density normalization.
+The mirror particle technique integrates naturally with the ψ-KDE density estimator (§7.2 step 1b; theory: NelsonMechanics_SchrodingerBridge_Swarmalator.md §§2–3). When depositing particles onto the CIC grid, the mirror particles are included in both the density (n) and complex-current (j) depositions, with appropriate phases. Since mirror particles lie outside the physical distribution boundary, their phase can be set to match the nearest real particle — the key requirement is that they contribute correctly to the density normalization.
 
 ---
 
@@ -724,7 +724,7 @@ Stein's characterising identity E[f′(Z) − Zf(Z)] = 0 for Gaussian Z encodes 
 - `Method5_Mathematical_Analysis_v3.md` — v3 first half: log-density, mirror particles, GH implementation (superseded)
 - `Method5_v3_second_half.md` — v3 second half: bridge/Wasserstein/classification (superseded by supplement)
 - `Adaptive_K_v2_DualReadout.md` — K requirements for STEER vs WEIGH, hybrid Q strategies
-- `M5psi_KDE_Analysis.md` — ψ-KDE density estimator
+- `NelsonMechanics_SchrodingerBridge_Swarmalator.md` §§2–3 — ψ-KDE density estimator theory
 - `Holland_Nelson_FokkerPlanck_Analysis.md` — Comparative analysis of Holland and Nelson frameworks
 - `FBSDE_SchrodingerBridge_Nelson_Holland.md` — Triangular FBSDE/bridge/bi-HJ relationship
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Wasserstein dynamics
