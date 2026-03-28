@@ -102,7 +102,7 @@ The terminology "coherent average" is standard in optics and NMR: summing comple
 
 The division by √n removes one power of √ρ from the particle density (which samples |ψ|², not |ψ|), yielding the wave function amplitude √ρ rather than the probability density ρ.
 
-**Normalization convention.** The definitions in §2.1 include the (1/Np) factor, so n_h → ρ as a proper probability density (∫ρ dx = 1). In the reference implementation `m5_gridless.py`, the 1/Np is omitted from the kernel sums: n = Σⱼ K_h(·) = Np · n_h. Since all quantities used in the algorithm — the velocity v = Im(j'/j), the selection probabilities ∝ √ρ, the WEIGH ratio M₊ — involve ratios where Np cancels, this convention has no effect on the dynamics. However, the absolute values of √ρ from the code are √Np times larger than the theoretical √ρ. If absolute ψ̂ values are needed (e.g. for comparison with an exact wave function), divide by Np: n_h = n/Np, j_h = j/Np.
+**Normalization convention.** The definitions in §2.1 include the (1/Np) factor, so n_h → ρ as a proper probability density (∫ρ dx = 1). In the reference implementation `m5_gridless_opt.py`, the 1/Np is omitted from the kernel sums: n = Σⱼ K_h(·) = Np · n_h. Since all quantities used in the algorithm — the velocity v = Im(j'/j), the selection probabilities ∝ √ρ, the WEIGH ratio M₊ — involve ratios where Np cancels, this convention has no effect on the dynamics. However, the absolute values of √ρ from the code are √Np times larger than the theoretical √ρ. If absolute ψ̂ values are needed (e.g. for comparison with an exact wave function), divide by Np: n_h = n/Np, j_h = j/Np.
 
 Unlike the grid-based CIC + `gaussian_filter1d` pipeline (`NelsonMechanics_SchrodingerBridge_Algorithm.md` §7.2 step 1b), where the discrete convolution introduces a √dx scale factor requiring an explicit normalization step every time step, the gridless kernel sums use a properly normalized Gaussian kernel K_h with ∫K_h du = 1. The gridless ψ-KDE converges to ψ directly — no normalization step is needed.
 
@@ -633,7 +633,6 @@ The single bandwidth parameter h controls all smoothing. The coherent averaging 
 - `NelsonMechanics_SchrodingerBridge_Supplement.md` — Contextual analysis: Hackebill–Poirier, Wasserstein dynamics, bridge interpretation
 - `NelsonMechanics_SchrodingerBridge_Algorithm.md` §7.2 step 1b — grid-based ψ-KDE implementation (CIC + Gaussian convolution)
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Fisher information
-- `QuantumSwarmalator_Algorithm.md` — Earlier swarmalator-ontology exploration
 - `project_summary.md` — te Vrugt et al. active matter analysis
 - `complex_trajectories_analysis.md` — Yang & Han complex trajectory connection
-- `m5_gridless.py` — Reference implementation of the gridless swarmalator algorithm
+- `m5_gridless_opt.py` — Reference implementation of the gridless swarmalator algorithm

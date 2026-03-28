@@ -429,10 +429,8 @@ The density evolves as a genuine dynamical object on Wasserstein space, with col
 
 - `Method5_Mathematical_Analysis_v2.md` — v2 dual-readout theory (Theorems 1–2), variance analysis, antithetic candidates
 - `Method5_Mathematical_Analysis_v3.md` — v3 first half: three weight functions, log-density approach, mirror particles, GH implementation, numerical validation
-- `Adaptive_K_v2_DualReadout.md` — K requirements for STEER vs WEIGH, hybrid Q strategies
 - `Holland_Nelson_FokkerPlanck_Analysis.md` — Comparative analysis of Holland and Nelson, coupled SDE system, Fokker–Planck pair
 - `FBSDE_SchrodingerBridge_Nelson_Holland.md` — Triangular relationship between FBSDEs, bridges, and bi-HJ
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Wasserstein dynamics
 - `NelsonMechanics_SchrodingerBridge_Swarmalator.md` §§2–3 — ψ-KDE density estimator theory
 - `HackebillPoirier2602_21106v1.pdf` — Sparse ontology analysis, CHV vs DHV classification
-- `method7_math_analysis.md` — Two-species bi-HJ implementation, Q± sign verification

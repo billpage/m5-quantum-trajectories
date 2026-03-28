@@ -645,10 +645,8 @@ The anti-diffusive Fokker–Planck equation is never solved directly. Its inform
 ### Project Knowledge Cross-References
 
 - `Method5_Mathematical_Analysis_v2.md` — v2 dual-readout theory (Theorems 1–2), variance analysis, antithetic candidates
-- `Adaptive_K_v2_DualReadout.md` — K requirements for STEER vs WEIGH, hybrid Q strategies
 - `Holland_Nelson_FokkerPlanck_Analysis.md` — Comparative analysis of Holland and Nelson, coupled SDE system, Fokker–Planck pair
 - `FBSDE_SchrodingerBridge_Nelson_Holland.md` — Triangular relationship between FBSDEs, bridges, and bi-HJ
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Wasserstein dynamics
 - `NelsonMechanics_SchrodingerBridge_Swarmalator.md` §§2–3 — ψ-KDE density estimator theory
 - `HackebillPoirier2602_21106v1.pdf` — Sparse ontology analysis, CHV vs DHV classification
-- `dual_gh_v2.py` — Numerical validation code for the dual-weight strategies
