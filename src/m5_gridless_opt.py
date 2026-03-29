@@ -21,7 +21,7 @@ import numpy as np
 
 from m5_utils import output_path
 from m5_fft_ref import schrodinger_fft_1d
-from m5_init import init_ensemble_1d, Ensemble
+from m5_init import init_ensemble_1d, Ensemble, Units
 from m5_sim import (m5_simulate, select_backend,
                     kernel_sums, psi_kde_fields)
 
@@ -244,12 +244,12 @@ def main():
         X, S = init_ensemble_1d(psi0_grid, x_grid, params['Np'],
                                 hbar=HBAR, seed=42,
                                 psi0_func=psi0_func_normed)
-        ens = Ensemble(X=X, S=S, x_grid=x_grid, hbar=HBAR, mass=MASS)
+        ens = Ensemble(X=X, S=S, mass=MASS)
 
         print("  M5 gridless swarmalator...", flush=True)
         m5 = m5_simulate(
             ens, V_func, params['T'], params['Nt'],
-            mode='gridless',
+            mode='gridless', units=Units(hbar=HBAR), x_grid=x_grid,
             K_gh=params['K_gh'], sigma_gh=params['sigma_gh'],
             h_kde=params['h_kde'], save_every=params['save_every'],
             seed=42, backend=force,

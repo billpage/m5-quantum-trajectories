@@ -11,16 +11,17 @@ from an initial wavefunction ψ₀, supporting:
 
 Typical usage (1-D)
 -------------------
-    from m5_init import init_ensemble_1d, Ensemble
+    from m5_init import init_ensemble_1d, Ensemble, Units
 
     x = np.linspace(-15, 15, 512, endpoint=False)
     psi0 = my_wavefunction(x)
     X, S = init_ensemble_1d(psi0, x, Np=4000)
-    ens = Ensemble(X=X, S=S, x_grid=x)
+    ens = Ensemble(X=X, S=S)
 
     # Pass to simulation:
     from m5_sim import m5_simulate
-    result = m5_simulate(ens, V_func=my_V, T=2.0, Nt=2000, mode='gridless')
+    result = m5_simulate(ens, V_func=my_V, T=2.0, Nt=2000,
+                         mode='gridless', x_grid=x)
 
 Typical usage (2-D)
 -------------------
@@ -44,63 +45,55 @@ from dataclasses import dataclass
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 0.  Ensemble dataclass
+# 0.  Units and Ensemble dataclasses
 # ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class Units:
+    """Physical constants determined by the choice of unit system.
+
+    Default is atomic units (ℏ = 1).  For SI, use Units(hbar=1.0546e-34).
+    """
+    hbar: float = 1.0
+
 
 @dataclass
 class Ensemble:
     """Particle ensemble state for M5 quantum trajectory simulations.
 
-    Carries the per-particle state (X, S) together with the spatial grid
-    and physical constants needed by the simulation driver m5_sim.
+    Carries the per-world-particle state (X, S) and the per-DOF mass.
+    Grid information and physical constants (ℏ) are supplied separately
+    to the simulation driver m5_sim.m5_simulate().
 
     Attributes
     ----------
-    X : ndarray, shape (Np,)
-        Particle positions (1-D).
+    X : ndarray, shape (Np,) or (Np, D)
+        Positions in configuration space.
+        (Np,) for 1-D single particle.
+        (Np, D) for D-dimensional configuration space, where
+        D = n_particles × n_spatial_dims.
     S : ndarray, shape (Np,)
         Action phase values (S_i = ℏ · arg ψ evaluated at X_i).
-    x_grid : ndarray, shape (Nx,)
-        Spatial grid (uniform, endpoint=False convention).
-    hbar : float
-        Reduced Planck constant (default 1.0).
-    mass : float
-        Particle mass (default 1.0).
-
-    Derived properties
-    ------------------
-    Np, Nx, dx, xL, xR — all computed from X and x_grid.
+    mass : float or ndarray, shape (D,)
+        Mass per degree of freedom.  Scalar for equal-mass systems;
+        array for multi-particle with different masses, e.g.
+        mass = [m_e, m_p] for electron + proton in 1-D.
+        Each entry is repeated n_spatial_dims times if needed:
+        for particle k in d spatial dims, mass[k*d : (k+1)*d] = m_k.
     """
     X: np.ndarray
     S: np.ndarray
-    x_grid: np.ndarray
-    hbar: float = 1.0
-    mass: float = 1.0
+    mass: float = 1.0     # float or (D,) array
 
     @property
     def Np(self):
-        """Number of particles."""
+        """Number of world-particles (ensemble size)."""
         return self.X.shape[0]
 
     @property
-    def Nx(self):
-        """Number of grid points."""
-        return len(self.x_grid)
-
-    @property
-    def dx(self):
-        """Grid spacing."""
-        return float(self.x_grid[1] - self.x_grid[0]) if self.Nx > 1 else 1.0
-
-    @property
-    def xL(self):
-        """Left domain bound."""
-        return float(self.x_grid[0])
-
-    @property
-    def xR(self):
-        """Right domain bound (one dx past last grid point)."""
-        return float(self.x_grid[-1]) + self.dx
+    def D(self):
+        """Configuration-space dimension."""
+        return 1 if self.X.ndim == 1 else self.X.shape[1]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

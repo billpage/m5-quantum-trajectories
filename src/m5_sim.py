@@ -17,31 +17,31 @@ Provides a single entry point for running 1-D M5 simulations in two modes:
                 Backward channel: u′ via GH-weighted ln ρ (Holland bi-HJ).
                 GPU via xp (numpy/cupy) abstraction.
 
-Both modes share:
-  • Ensemble input via m5_init.Ensemble dataclass
-  • Phase update: dS = (½mv² − V − Q)·dt with phase wrapping
-  • Common return dict: X, S, t_save, wall_time, mode, params
-  • Optional trajectory tracking for selected particle IDs
-  • Backward channel: Q̃ = Q + ℏu′ (diagnostic; Q used in dynamics)
+Separation of concerns:
+  • Ensemble  (m5_init) — particle state: X, S, mass
+  • Units     (m5_init) — physical constants: hbar
+  • x_grid    — spatial grid, required for 'grid' mode,
+                optional for 'gridless' (enables V precomputation)
 
 Usage
 -----
-    from m5_init import init_ensemble_1d, Ensemble
+    from m5_init import init_ensemble_1d, Ensemble, Units
     from m5_sim import m5_simulate
 
     x = np.linspace(-15, 15, 512, endpoint=False)
-    psi0 = my_wavefunction(x)
-    X, S = init_ensemble_1d(psi0, x, Np=4000, psi0_func=my_wavefunction)
-    ens = Ensemble(X=X, S=S, x_grid=x)
+    psi0_grid = my_wavefunction(x)
+    X, S = init_ensemble_1d(psi0_grid, x, Np=4000, psi0_func=my_wavefunction)
+    ens = Ensemble(X=X, S=S)
 
     result = m5_simulate(ens, V_func=my_V, T=2.0, Nt=2000,
-                         mode='gridless', K_gh=6, sigma_gh=0.20, h_kde=0.22)
+                         mode='gridless', x_grid=x,
+                         K_gh=6, sigma_gh=0.20, h_kde=0.22)
 """
 
 import numpy as np
 import time
 
-from m5_init import Ensemble
+from m5_init import Ensemble, Units
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -99,28 +99,15 @@ def _gaussian_smooth(f, sigma, xp):
     N = len(f)
     is_complex = xp.iscomplexobj(f)
     if is_complex:
-        # Smooth real and imaginary parts separately
         return (_gaussian_smooth(xp.real(f), sigma, xp) +
                 1j * _gaussian_smooth(xp.imag(f), sigma, xp))
-    k = xp.fft.rfftfreq(N)               # 0, 1/N, 2/N, ...
+    k = xp.fft.rfftfreq(N)
     gauss_k = xp.exp(-2.0 * (PI * sigma * k)**2)
     return xp.fft.irfft(gauss_k * xp.fft.rfft(f), n=N)
 
 
 def _linear_interp(X, x_grid, field, xp):
-    """Interpolate 1-D field to particle positions (xp-compatible).
-
-    Parameters
-    ----------
-    X       : (Np,) particle positions
-    x_grid  : (Nx,) uniform grid
-    field   : (Nx,) values on grid
-    xp      : numpy or cupy
-
-    Returns
-    -------
-    (Np,) interpolated values
-    """
+    """Interpolate 1-D field to particle positions (xp-compatible)."""
     xL = float(x_grid[0])
     dx = float(x_grid[1] - x_grid[0])
     Nx = len(x_grid)
@@ -140,20 +127,6 @@ def _grid_psi_kde(X, S, x_grid, sigma, hbar, xp):
     CIC deposit + FFT Gaussian convolution → ψ̂ = j_h / √n_h.
 
     Uses xp.bincount for GPU-compatible CIC deposit.
-
-    Parameters
-    ----------
-    X     : (Np,) particle positions (on device)
-    S     : (Np,) action phases (on device)
-    x_grid: (Nx,) spatial grid (on device)
-    sigma : float — Gaussian bandwidth in grid cells
-    hbar  : float
-    xp    : numpy or cupy
-
-    Returns
-    -------
-    psi_grid : (Nx,) complex — normalised ψ̂ on grid
-    sqrt_rho : (Nx,) float  — |ψ̂|
     """
     Np = len(X)
     Nx = len(x_grid)
@@ -161,7 +134,6 @@ def _grid_psi_kde(X, S, x_grid, sigma, hbar, xp):
     dx = float(x_grid[1] - x_grid[0])
     eps_n = 1e-30
 
-    # Fractional grid index
     fi = xp.clip((X - xL) / dx, 0.0, Nx - 1.001)
     k_L = fi.astype(xp.int64)
     alpha = fi - k_L
@@ -174,7 +146,6 @@ def _grid_psi_kde(X, S, x_grid, sigma, hbar, xp):
     w_L = 1.0 - alpha
     w_R = alpha
 
-    # CIC deposit via bincount (GPU-compatible)
     n_raw = (xp.bincount(k_L, weights=w_L, minlength=Nx) +
              xp.bincount(k_R, weights=w_R, minlength=Nx))
     j_re = (xp.bincount(k_L, weights=w_L * cos_phi, minlength=Nx) +
@@ -182,17 +153,14 @@ def _grid_psi_kde(X, S, x_grid, sigma, hbar, xp):
     j_im = (xp.bincount(k_L, weights=w_L * sin_phi, minlength=Nx) +
             xp.bincount(k_R, weights=w_R * sin_phi, minlength=Nx))
 
-    # Gaussian convolution (single bandwidth)
     n_sm = _gaussian_smooth(n_raw, sigma, xp) / Np
     j_re_sm = _gaussian_smooth(j_re, sigma, xp) / Np
     j_im_sm = _gaussian_smooth(j_im, sigma, xp) / Np
 
-    # ψ̂ = j / √n, then normalise
     sqrt_n = xp.sqrt(xp.maximum(n_sm, eps_n))
     psi_re = j_re_sm / sqrt_n
     psi_im = j_im_sm / sqrt_n
 
-    # Normalise: ∫|ψ̂|² dx = 1
     rho_raw = psi_re**2 + psi_im**2
     norm = xp.sqrt(xp.sum(rho_raw) * dx)
     if float(norm) > eps_n:
@@ -219,13 +187,7 @@ def kernel_sums(eval_x, X_src, phi_src, h, xp, cutoff=4.0,
     h:        scalar      — kernel bandwidth
     xp:       module      — numpy or cupy
 
-    Returns dict with:
-      n:       (N_eval,)  — density KDE  Σ K_h(x-X_j)
-      j_re:    (N_eval,)  — Re Σ K_h(x-X_j) cos(φ_j)
-      j_im:    (N_eval,)  — Im Σ K_h(x-X_j) sin(φ_j)
-    If need_deriv:
-      jp_re:   (N_eval,)  — Re Σ K′_h(x-X_j) cos(φ_j)
-      jp_im:   (N_eval,)  — Im Σ K′_h(x-X_j) sin(φ_j)
+    Returns dict with keys n, j_re, j_im [, jp_re, jp_im].
     """
     N_eval = len(eval_x)
     cos_phi = xp.cos(phi_src)
@@ -324,6 +286,8 @@ def gh_nodes_weights(K_gh):
 
 def m5_simulate(ensemble, V_func, T, Nt, *,
                 mode='gridless',
+                units=None,
+                x_grid=None,
                 save_every=50, seed=42,
                 track_ids=None,
                 verbose=True,
@@ -344,8 +308,7 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
     Parameters
     ----------
     ensemble : Ensemble
-        Particle state (X, S) and domain info (x_grid, hbar, mass).
-        Created via m5_init.init_ensemble_1d + m5_init.Ensemble.
+        Particle state (X, S) and per-DOF mass.
     V_func : callable
         V(x) → real array, the external potential.
     T : float
@@ -355,75 +318,36 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
     mode : {'grid', 'gridless'}
         'grid'     — CIC deposit + Gaussian smooth on spatial grid.
         'gridless' — GH-quadrature swarmalator with Holland bi-HJ.
+    units : Units or None
+        Physical constants (hbar).  Default: Units(hbar=1.0).
+    x_grid : ndarray or None
+        Spatial grid (1-D, uniform, endpoint=False).
+        Required for mode='grid'.
+        Optional for mode='gridless': if provided, V is precomputed
+        on the grid for fast interpolation; if None, V_func(X) is
+        evaluated directly at particle positions each step.
     save_every : int
         Save a snapshot every this many steps.
     seed : int
         Random seed for stochastic selection during dynamics.
     track_ids : array-like of int, or None
-        If provided, record positions of these particle indices at every
-        time step (not just snapshots).  Useful for trajectory plots.
+        Record positions of these particle indices at every step.
     verbose : bool
         Print progress to stdout.
 
-    Grid-mode parameters
-    --------------------
-    sigma_kde : float
-        Gaussian smoothing bandwidth in grid-cell units for CIC deposit.
-    K_cand : int
-        Number of random-noise candidates per particle per step.
-    sigma_Q_smooth : float
-        Light Gaussian smooth (grid cells) applied to Q field.
-
-    Gridless-mode parameters
-    ------------------------
-    K_gh : int
-        Gauss–Hermite quadrature order (shared STEER + WEIGH cloud).
-    sigma_gh : float
-        GH probe scale in physical units.
-    h_kde : float
-        Kernel bandwidth in physical units.
-
-    Backend
-    -------
-    backend : 'cpu' | 'gpu' | None
-        None auto-detects (prefers GPU if cupy is available).
-    chunk_size : int
-        Maximum rows in vectorised kernel-sum matrices (memory control).
-
     Returns
     -------
-    dict with keys:
-        X         : (Ns, Np) float — particle positions at snapshots
-        S         : (Ns, Np) float — particle phases at snapshots
-        t_save    : (Ns,) float    — snapshot times
-        wall_time : float          — total wall-clock time (seconds)
-        mode      : str            — 'grid' or 'gridless'
-        params    : dict           — copy of simulation parameters
-
-    Grid-mode extras:
-        psi       : (Ns, Nx) complex — ψ̂ on grid at snapshots
-        v_field   : (Ns, Nx) float   — velocity field at snapshots
-        Q_field   : (Ns, Nx) float   — quantum potential at snapshots
-        Q_tilde   : (Ns, Nx) float   — Q̃ = Q + ℏu′ (backward channel)
-
-    Gridless-mode extras:
-        h_kde     : float            — kernel bandwidth used
-
-    If track_ids is not None:
-        traj_X    : (Nt+1, N_track) float — tracked positions at every step
-        traj_t    : (Nt+1,) float         — time array for trajectories
+    dict — see mode-specific docs in _grid_sim and _gridless_sim.
     """
     if mode not in ('grid', 'gridless'):
         raise ValueError(f"Unknown mode '{mode}'; use 'grid' or 'gridless'.")
 
-    # ── Unpack ensemble ───────────────────────────────────────────────
-    hbar = ensemble.hbar
-    mass = ensemble.mass
-    x_grid = ensemble.x_grid
-    Nx = ensemble.Nx
-    dx = ensemble.dx
-    xL = ensemble.xL
-    xR = ensemble.xR
+    if units is None:
+        units = Units()
+
+    # ── Unpack ────────────────────────────────────────────────────────
+    hbar = units.hbar
+    mass = float(ensemble.mass)   # scalar for 1-D
     Np = ensemble.Np
     dt = T / Nt
 
@@ -432,16 +356,34 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
     if verbose:
         print(f"  Backend: {backend_name}", flush=True)
 
-    # ── Precompute V on grid and transfer to device ───────────────────
-    V_grid_cpu = V_func(np.asarray(x_grid))
-    V_grid_dev = xp.asarray(V_grid_cpu, dtype=xp.float64)
-    x_grid_dev = xp.asarray(x_grid, dtype=xp.float64)
+    # ── Grid setup (if provided) ──────────────────────────────────────
+    if x_grid is not None:
+        x_grid = np.asarray(x_grid, dtype=np.float64)
+        Nx = len(x_grid)
+        dx = float(x_grid[1] - x_grid[0])
+        xL = float(x_grid[0])
+        xR = float(x_grid[-1]) + dx
+        x_grid_dev = xp.asarray(x_grid, dtype=xp.float64)
+        V_grid_cpu = V_func(x_grid)
+        V_grid_dev = xp.asarray(V_grid_cpu, dtype=xp.float64)
+    elif mode == 'grid':
+        raise ValueError("x_grid is required for mode='grid'.")
+    else:
+        # Gridless without grid: infer domain from particle spread
+        x_grid_dev = None
+        V_grid_dev = None
+        Nx = 0
+        dx = 0.0
+        X_cpu = np.asarray(ensemble.X, dtype=np.float64)
+        margin = 5.0 * h_kde
+        xL = float(X_cpu.min()) - margin
+        xR = float(X_cpu.max()) + margin
 
     # ── Particle state on CPU ─────────────────────────────────────────
     X_cpu = np.array(ensemble.X, dtype=np.float64)
     S_cpu = np.array(ensemble.S, dtype=np.float64)
 
-    # ── Parameter snapshot (for reproducibility) ──────────────────────
+    # ── Parameter snapshot ────────────────────────────────────────────
     params = dict(
         xL=xL, xR=xR, Nx=Nx, T=T, Nt=Nt, Np=Np, dt=dt, dx=dx,
         mode=mode, hbar=hbar, mass=mass, backend=backend_name,
@@ -464,7 +406,8 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
         params.update(K_gh=K_gh, sigma_gh=sigma_gh, h_kde=h_kde,
                       chunk_size=chunk_size)
         return _gridless_sim(
-            X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt,
+            X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
+            V_func, dt, Nt,
             hbar=hbar, mass=mass, Np=Np, xL=xL, xR=xR,
             K_gh=K_gh, sigma_gh=sigma_gh, h_kde=h_kde,
             save_every=save_every, seed=seed,
@@ -493,7 +436,6 @@ def _grid_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
 
     rng = np.random.default_rng(seed)
 
-    # Transfer to device
     X = xp.asarray(X_cpu, dtype=xp.float64)
     S = xp.asarray(S_cpu, dtype=xp.float64)
 
@@ -521,13 +463,11 @@ def _grid_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
         track_ids_arr = None
         traj_X = None
 
-    # ── Initial snapshot ──────────────────────────────────────────────
     if 0 in idx_save:
         psi0_est, _ = _grid_psi_kde(X, S, x_grid_dev, sigma_kde, hbar, xp)
         X_hist[si] = X_cpu.copy()
         S_hist[si] = S_cpu.copy()
         psi_hist[si] = to_cpu(psi0_est)
-        # v, Q, Q̃ all zero at t=0
         t_hist[si] = 0.0
         si += 1
 
@@ -535,45 +475,38 @@ def _grid_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
 
     for n in range(1, Nt + 1):
 
-        # ── STEP 1: ψ-KDE field estimation ───────────────────────────
         psi_grid, sqrt_rho = _grid_psi_kde(
             X, S, x_grid_dev, sigma_kde, hbar, xp)
         rho_est = sqrt_rho ** 2
 
-        # Current velocity: v = (ℏ/m) Im(ψ̂* ∂ψ̂) / |ψ̂|²
         dpsi = _Dx(psi_grid, dx, xp)
         v_field = ((hbar / mass)
                    * xp.imag(xp.conj(psi_grid) * dpsi)
                    / xp.maximum(rho_est, eps))
 
-        # Quantum potential: Q = -(ℏ²/2m) ∂²√ρ / √ρ
         Q_field = (-(hbar**2 / (2.0 * mass))
                    * _D2x(sqrt_rho, dx, xp)
                    / xp.maximum(sqrt_rho, eps))
         Q_field = _gaussian_smooth(Q_field, sigma_Q_smooth, xp)
 
-        # Backward channel: u′ = ν ∂²(ln ρ)/∂x², Q̃ = Q + ℏu′
+        # Backward channel
         ln_rho = xp.log(xp.maximum(rho_est, eps))
         u_prime_field = nu * _D2x(ln_rho, dx, xp)
         Q_tilde_field = Q_field + hbar * u_prime_field
 
-        # ── STEP 2: Classical advection ───────────────────────────────
         v_at = _linear_interp(X, x_grid_dev, v_field, xp)
         X_class = X + v_at * dt
 
-        # ── STEP 3: √ρ-weighted candidate selection ──────────────────
         noise_cpu = rng.normal(size=(Np, K_cand)) * sigma_noise * (dt**0.5)
         noise = xp.asarray(noise_cpu, dtype=xp.float64)
         cands = xp.clip(X_class[:, None] + noise, xL + dx, xR - dx)
 
-        # Interpolate √ρ at candidates
         fi = xp.clip((cands - xL) / dx, 0.0, Nx - 1.001)
         lo = xp.clip(fi.astype(xp.int64), 0, Nx - 2)
         hi = lo + 1
         al = xp.clip(fi - lo, 0.0, 1.0)
         w = xp.maximum((1.0 - al) * sqrt_rho[lo] + al * sqrt_rho[hi], eps)
 
-        # Categorical selection
         w_norm = w / w.sum(axis=1, keepdims=True)
         cum = xp.cumsum(w_norm, axis=1)
         u_rand = xp.asarray(rng.uniform(size=Np), dtype=xp.float64)
@@ -582,7 +515,6 @@ def _grid_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
             0, K_cand - 1)
         X = cands[xp.arange(Np), ck]
 
-        # ── STEP 4: Phase update ──────────────────────────────────────
         Q_at = _linear_interp(X, x_grid_dev, Q_field, xp)
         V_at = _linear_interp(X, x_grid_dev, V_grid_dev, xp)
         S = S + (0.5 * mass * v_at**2 - V_at - Q_at) * dt
@@ -590,11 +522,9 @@ def _grid_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
         TWO_PI_HBAR = 2.0 * PI * hbar
         S = xp.mod(S + 0.5 * TWO_PI_HBAR, TWO_PI_HBAR) - 0.5 * TWO_PI_HBAR
 
-        # ── Trajectory tracking ───────────────────────────────────────
         if traj_X is not None:
             traj_X[n] = to_cpu(X)[track_ids_arr]
 
-        # ── Snapshot ──────────────────────────────────────────────────
         if n in idx_save and si < Ns:
             X_hist[si] = to_cpu(X)
             S_hist[si] = to_cpu(S)
@@ -608,7 +538,6 @@ def _grid_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
         if verbose and n % max(1, Nt // 10) == 0:
             print(f"    step {n}/{Nt}  ({time.time() - t0:.1f}s)", flush=True)
 
-    # Fill remaining slots
     for j in range(si, Ns):
         X_hist[j] = to_cpu(X)
         S_hist[j] = to_cpu(S)
@@ -636,7 +565,8 @@ def _grid_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
 # Gridless (swarmalator) simulation
 # ═══════════════════════════════════════════════════════════════════════
 
-def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
+def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
+                  V_func, dt, Nt, *,
                   hbar, mass, Np, xL, xR,
                   K_gh, sigma_gh, h_kde,
                   save_every, seed, track_ids, verbose,
@@ -644,31 +574,29 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
     """
     Gridless swarmalator simulation with Holland bi-HJ.
 
-    All kernel sums are vectorised as batched matrix operations.
-    Supports GPU via the xp (numpy/cupy) abstraction.
+    If x_grid_dev is provided, V is precomputed on the grid and
+    interpolated to particle positions.  Otherwise, V_func(X) is
+    evaluated directly each step.
     """
     nu = hbar / (2.0 * mass)
     h = h_kde
     rng = np.random.default_rng(seed)
+    use_grid_V = x_grid_dev is not None
 
-    # ── GH nodes (CPU then transfer) ─────────────────────────────────
     xi_cpu, omega_cpu = gh_nodes_weights(K_gh)
     xi = xp.asarray(xi_cpu, dtype=xp.float64)
     omega = xp.asarray(omega_cpu, dtype=xp.float64)
 
-    # ── Transfer to device ────────────────────────────────────────────
     X = xp.asarray(X_cpu, dtype=xp.float64)
     S = xp.asarray(S_cpu, dtype=xp.float64)
 
     def to_cpu(arr):
         return arr.get() if hasattr(arr, 'get') else np.array(arr)
 
-    # ── Snapshot storage ──────────────────────────────────────────────
     idx_save = set(range(0, Nt + 1, save_every))
     Ns = len(idx_save)
     X_hist = []; S_hist = []; t_hist = []
 
-    # ── Trajectory tracking ───────────────────────────────────────────
     if track_ids is not None:
         track_ids_arr = np.asarray(track_ids, dtype=int)
         traj_X = np.zeros((Nt + 1, len(track_ids_arr)))
@@ -698,8 +626,8 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
         X_class = xp.clip(X_class, xL + h, xR - h)
 
         # ══════════════ STEP 3: SHARED GH CANDIDATE CLOUD ════════════
-        cand_offsets = (2.0 ** 0.5) * sigma_gh * xi       # (K_gh,)
-        cands = X_class[:, None] + cand_offsets[None, :]   # (Np, K_gh)
+        cand_offsets = (2.0 ** 0.5) * sigma_gh * xi
+        cands = X_class[:, None] + cand_offsets[None, :]
         cands = xp.clip(cands, xL + h, xR - h)
         cands_flat = cands.reshape(-1)
 
@@ -743,22 +671,20 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev, dt, Nt, *,
         Q_tilde = Q_at + hbar * u_prime
 
         # ══════════════ STEP 8: PHASE UPDATE ══════════════════════════
-        fi = xp.clip((X - xL) / dx, 0.0, Nx - 1.001)
-        lo = fi.astype(xp.int64)
-        al = fi - lo
-        hi = xp.minimum(lo + 1, Nx - 1)
-        V_at = (1.0 - al) * V_grid_dev[lo] + al * V_grid_dev[hi]
+        if use_grid_V:
+            V_at = _linear_interp(X, x_grid_dev, V_grid_dev, xp)
+        else:
+            X_np = to_cpu(X)
+            V_at = xp.asarray(V_func(X_np), dtype=xp.float64)
 
         S = S + (0.5 * mass * v_at**2 - V_at - Q_at) * dt
 
         TWO_PI_HBAR = 2.0 * PI * hbar
         S = xp.mod(S + 0.5 * TWO_PI_HBAR, TWO_PI_HBAR) - 0.5 * TWO_PI_HBAR
 
-        # ── Trajectory tracking ───────────────────────────────────────
         if traj_X is not None:
             traj_X[n] = to_cpu(X)[track_ids_arr]
 
-        # ── Snapshot ──────────────────────────────────────────────────
         if n in idx_save:
             X_hist.append(to_cpu(X.copy()))
             S_hist.append(to_cpu(S.copy()))
