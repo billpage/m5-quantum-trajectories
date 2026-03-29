@@ -9,16 +9,21 @@ from an initial wavefunction ψ₀, supporting:
   • 1-D, 2-D, and N-D grids
   • Optional ψ-KDE phase refinement to reduce initial reconstruction error
 
-Typical usage (1-D stochastic)
-------------------------------
-    from m5_init import init_ensemble_1d
+Typical usage (1-D)
+-------------------
+    from m5_init import init_ensemble_1d, Ensemble
 
     x = np.linspace(-15, 15, 512, endpoint=False)
     psi0 = my_wavefunction(x)
     X, S = init_ensemble_1d(psi0, x, Np=4000)
+    ens = Ensemble(X=X, S=S, x_grid=x)
 
-Typical usage (2-D stochastic)
-------------------------------
+    # Pass to simulation:
+    from m5_sim import m5_simulate
+    result = m5_simulate(ens, V_func=my_V, T=2.0, Nt=2000, mode='gridless')
+
+Typical usage (2-D)
+-------------------
     from m5_init import init_ensemble_2d
 
     axes = [np.linspace(-8, 8, 256, endpoint=False)] * 2
@@ -35,6 +40,67 @@ Phase optimization
 """
 
 import numpy as np
+from dataclasses import dataclass
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 0.  Ensemble dataclass
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class Ensemble:
+    """Particle ensemble state for M5 quantum trajectory simulations.
+
+    Carries the per-particle state (X, S) together with the spatial grid
+    and physical constants needed by the simulation driver m5_sim.
+
+    Attributes
+    ----------
+    X : ndarray, shape (Np,)
+        Particle positions (1-D).
+    S : ndarray, shape (Np,)
+        Action phase values (S_i = ℏ · arg ψ evaluated at X_i).
+    x_grid : ndarray, shape (Nx,)
+        Spatial grid (uniform, endpoint=False convention).
+    hbar : float
+        Reduced Planck constant (default 1.0).
+    mass : float
+        Particle mass (default 1.0).
+
+    Derived properties
+    ------------------
+    Np, Nx, dx, xL, xR — all computed from X and x_grid.
+    """
+    X: np.ndarray
+    S: np.ndarray
+    x_grid: np.ndarray
+    hbar: float = 1.0
+    mass: float = 1.0
+
+    @property
+    def Np(self):
+        """Number of particles."""
+        return self.X.shape[0]
+
+    @property
+    def Nx(self):
+        """Number of grid points."""
+        return len(self.x_grid)
+
+    @property
+    def dx(self):
+        """Grid spacing."""
+        return float(self.x_grid[1] - self.x_grid[0]) if self.Nx > 1 else 1.0
+
+    @property
+    def xL(self):
+        """Left domain bound."""
+        return float(self.x_grid[0])
+
+    @property
+    def xR(self):
+        """Right domain bound (one dx past last grid point)."""
+        return float(self.x_grid[-1]) + self.dx
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
