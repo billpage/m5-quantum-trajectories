@@ -15,8 +15,7 @@ Typical usage (1-D)
 
     x = np.linspace(-15, 15, 512, endpoint=False)
     psi0 = my_wavefunction(x)
-    X, S = init_ensemble_1d(psi0, x, Np=4000)
-    ens = Ensemble(X=X, S=S)
+    ens = init_ensemble_1d(psi0, x, Np=4000)
 
     # Pass to simulation:
     from m5_sim import m5_simulate
@@ -29,12 +28,12 @@ Typical usage (2-D)
 
     axes = [np.linspace(-8, 8, 256, endpoint=False)] * 2
     psi0_2d = my_wavefunction_2d(*np.meshgrid(*axes, indexing='ij'))
-    Q, S = init_ensemble_2d(psi0_2d, axes, Np=4000)
+    ens = init_ensemble_2d(psi0_2d, axes, Np=4000)
 
 Phase optimization
 ------------------
-    X, S = init_ensemble_1d(psi0, x, Np=4000,
-                            optimize_phase=True, h_kde=0.25)
+    ens = init_ensemble_1d(psi0, x, Np=4000,
+                           optimize_phase=True, h_kde=0.25)
 
     This adjusts the initial phases S_i so that the ψ-KDE reconstruction
     ψ̂ = j_h / √n_h more closely matches ψ₀ on the grid.
@@ -101,7 +100,7 @@ class Ensemble:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def init_ensemble_1d(psi0_vals, x_grid, Np, *,
-                     hbar=1.0, seed=42,
+                     mass=1.0, hbar=1.0, seed=42,
                      method='stochastic',
                      psi0_func=None,
                      optimize_phase=False,
@@ -117,8 +116,12 @@ def init_ensemble_1d(psi0_vals, x_grid, Np, *,
         Uniformly-spaced grid (endpoint=False convention).
     Np : int
         Number of particles.
+    mass : float or array-like
+        Mass per degree of freedom (default 1.0).  Stored in the
+        returned Ensemble.
     hbar : float
-        Reduced Planck constant (default 1.0).
+        Reduced Planck constant (default 1.0).  Used for phase
+        assignment S = ℏ·∠ψ₀.
     seed : int
         Random seed (used for both stochastic and deterministic modes
         where jitter is applied).
@@ -140,8 +143,7 @@ def init_ensemble_1d(psi0_vals, x_grid, Np, *,
 
     Returns
     -------
-    X : (Np,) float64 array — particle positions
-    S : (Np,) float64 array — action phases
+    Ensemble with X (Np,), S (Np,), and mass.
     """
     psi0_vals = np.asarray(psi0_vals, dtype=np.complex128)
     x_grid = np.asarray(x_grid, dtype=np.float64)
@@ -181,15 +183,13 @@ def init_ensemble_1d(psi0_vals, x_grid, Np, *,
         S = _optimize_phase_1d(X, S, psi0_vals, x_grid, dx,
                                hbar, h_kde, phase_opt_iters)
 
-    return X, S
-
-
+    return Ensemble(X=X, S=S, mass=mass)
 # ═══════════════════════════════════════════════════════════════════════════════
 # 2.  Core 2-D initialization
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def init_ensemble_2d(psi0_2d, axes, Np, *,
-                     hbar=1.0, seed=42,
+                     mass=1.0, hbar=1.0, seed=42,
                      method='stochastic',
                      jitter=True):
     """Sample Np particles from a 2-D |ψ₀|² via marginal + conditional CDF.
@@ -202,6 +202,8 @@ def init_ensemble_2d(psi0_2d, axes, Np, *,
         Each axis is a uniformly-spaced grid (endpoint=False).
     Np : int
         Number of particles.
+    mass : float or (2,) array
+        Mass per degree of freedom (default 1.0).
     hbar : float
     seed : int
     method : {'stochastic', 'deterministic'}
@@ -211,8 +213,7 @@ def init_ensemble_2d(psi0_2d, axes, Np, *,
 
     Returns
     -------
-    Q : (Np, 2) float64 array — particle positions
-    S : (Np,)   float64 array — action phases
+    Ensemble with X (Np, 2), S (Np,), and mass.
     """
     psi0_2d = np.asarray(psi0_2d, dtype=np.complex128)
     x_ax = np.asarray(axes[0], dtype=np.float64)
@@ -278,7 +279,7 @@ def init_ensemble_2d(psi0_2d, axes, Np, *,
     # Phase via bilinear interpolation of Re/Im
     S = _assign_phase_2d(Q, psi0_2d, x_ax, y_ax, hbar)
 
-    return Q, S
+    return Ensemble(X=Q, S=S, mass=mass)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -286,7 +287,7 @@ def init_ensemble_2d(psi0_2d, axes, Np, *,
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def init_ensemble_nd(psi0_nd, axes, Np, *,
-                     hbar=1.0, seed=42,
+                     mass=1.0, hbar=1.0, seed=42,
                      method='stochastic',
                      jitter=True):
     """Sample Np particles from an N-D |ψ₀|² via successive conditional CDFs.
@@ -298,12 +299,13 @@ def init_ensemble_nd(psi0_nd, axes, Np, *,
     axes : list of D 1-D arrays
         Grid along each dimension.
     Np : int
+    mass : float or (D,) array
+        Mass per degree of freedom (default 1.0).
     hbar, seed, method, jitter : as for init_ensemble_2d.
 
     Returns
     -------
-    Q : (Np, D) float64 — positions
-    S : (Np,)   float64 — phases
+    Ensemble with X (Np, D), S (Np,), and mass.
     """
     psi0_nd = np.asarray(psi0_nd, dtype=np.complex128)
     D = psi0_nd.ndim
@@ -401,7 +403,7 @@ def init_ensemble_nd(psi0_nd, axes, Np, *,
     # Phase via multilinear interpolation of Re/Im
     S = _assign_phase_nd(Q, psi0_nd, axes, hbar)
 
-    return Q, S
+    return Ensemble(X=Q, S=S, mass=mass)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

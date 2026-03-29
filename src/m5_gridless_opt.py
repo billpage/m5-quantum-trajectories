@@ -241,10 +241,9 @@ def main():
         print(f"({time.time() - t0:.1f}s)")
 
         # Create ensemble and run via m5_simulate
-        X, S = init_ensemble_1d(psi0_grid, x_grid, params['Np'],
-                                hbar=HBAR, seed=42,
-                                psi0_func=psi0_func_normed)
-        ens = Ensemble(X=X, S=S, mass=MASS)
+        ens = init_ensemble_1d(psi0_grid, x_grid, params['Np'],
+                               mass=MASS, hbar=HBAR, seed=42,
+                               psi0_func=psi0_func_normed)
 
         print("  M5 gridless swarmalator...", flush=True)
         m5 = m5_simulate(

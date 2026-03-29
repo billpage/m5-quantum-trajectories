@@ -25,13 +25,12 @@ Separation of concerns:
 
 Usage
 -----
-    from m5_init import init_ensemble_1d, Ensemble, Units
+    from m5_init import init_ensemble_1d, Units
     from m5_sim import m5_simulate
 
     x = np.linspace(-15, 15, 512, endpoint=False)
     psi0_grid = my_wavefunction(x)
-    X, S = init_ensemble_1d(psi0_grid, x, Np=4000, psi0_func=my_wavefunction)
-    ens = Ensemble(X=X, S=S)
+    ens = init_ensemble_1d(psi0_grid, x, Np=4000, psi0_func=my_wavefunction)
 
     result = m5_simulate(ens, V_func=my_V, T=2.0, Nt=2000,
                          mode='gridless', x_grid=x,
