@@ -10,13 +10,13 @@ Tests:
 """
 
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 import numpy as np
-from m5_init import (init_ensemble_1d, init_ensemble_2d, init_ensemble_nd,
+from m5.init import (init_ensemble_1d, init_ensemble_2d, init_ensemble_nd,
                      gaussian_wp, cat_state, ho_ground_state,
                      _psi_kde_on_grid)
-from m5_utils import output_path
+from m5.utils import output_path
 
 import matplotlib
 matplotlib.use('Agg')
@@ -24,6 +24,16 @@ import matplotlib.pyplot as plt
 
 HBAR = 1.0
 Np = 6000
+
+KS_THRESHOLD = 0.05   # conservative: KS critical value at p≈0.001 is ~0.025 for N=6000
+
+
+def _ks_stat(X_smp, x_grid, cdf):
+    """One-sample KS statistic against a tabulated CDF."""
+    X_s = np.sort(X_smp)
+    cdf_emp = (np.arange(len(X_s)) + 1) / len(X_s)
+    cdf_the = np.interp(X_s, x_grid, cdf)
+    return np.max(np.abs(cdf_emp - cdf_the))
 
 
 def test_1d_stochastic():
@@ -39,7 +49,8 @@ def test_1d_stochastic():
 
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
     for ax, (label, psi0) in zip(axes, cases):
-        X, S = init_ensemble_1d(psi0, x, Np, method='stochastic')
+        ens = init_ensemble_1d(psi0, x, Np, method='stochastic')
+        X, S = ens.X, ens.S
         rho_exact = np.abs(psi0) ** 2
         rho_exact /= rho_exact.sum() * dx
 
@@ -54,6 +65,12 @@ def test_1d_stochastic():
         ax.set_title(label, fontsize=10)
         ax.legend(fontsize=8)
 
+        # KS assertion
+        cdf = np.cumsum(rho_exact) * dx; cdf /= cdf[-1]
+        ks = _ks_stat(X, x, cdf)
+        assert ks < KS_THRESHOLD, \
+            f"{label}: KS statistic {ks:.4f} exceeds threshold {KS_THRESHOLD}"
+
     fig.suptitle('1-D stochastic init: density match', fontsize=12)
     fig.tight_layout()
     fig.savefig(output_path('test_init_1d_stochastic.png'), dpi=120)
@@ -67,8 +84,10 @@ def test_1d_deterministic():
     dx = x[1] - x[0]
     psi0 = ho_ground_state(x)
 
-    X_det, S_det = init_ensemble_1d(psi0, x, Np, method='deterministic')
-    X_sto, S_sto = init_ensemble_1d(psi0, x, Np, method='stochastic')
+    ens_det = init_ensemble_1d(psi0, x, Np, method='deterministic')
+    X_det, S_det = ens_det.X, ens_det.S
+    ens_sto = init_ensemble_1d(psi0, x, Np, method='stochastic')
+    X_sto, S_sto = ens_sto.X, ens_sto.S
 
     # Build CDF for Kolmogorov-Smirnov comparison: deterministic quantiles
     # are equally spaced in CDF space, so the empirical CDF should track
@@ -100,10 +119,11 @@ def test_phase_accuracy():
     dx = x[1] - x[0]
     norm_grid = (x, dx)
     psi0_func = lambda xx: cat_state(xx, 4.0, 3.0, 0.7, norm_grid=norm_grid)
-    X, S_func = init_ensemble_1d(psi0, x, Np, psi0_func=psi0_func)
+    ens_func = init_ensemble_1d(psi0, x, Np, psi0_func=psi0_func)
+    X, S_func = ens_func.X, ens_func.S
 
     # Test with interpolation only
-    _, S_interp = init_ensemble_1d(psi0, x, Np)
+    S_interp = init_ensemble_1d(psi0, x, Np).S
 
     # Reference
     S_exact = HBAR * np.angle(psi0_func(X))
@@ -131,16 +151,18 @@ def test_2d_init():
     norm = np.sqrt(np.sum(np.abs(psi0)**2) * dx**2)
     psi0 /= norm
 
-    Q, S = init_ensemble_2d(psi0, [x, y], Np)
+    ens = init_ensemble_2d(psi0, [x, y], Np)
+    Q, S = ens.X, ens.S
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 
     # x-marginal
     rho_x = (np.abs(psi0)**2).sum(axis=1) * dx
+    rho_x /= rho_x.sum() * dx
     edges_x = np.linspace(x[0], x[-1], 101)
     hx, _ = np.histogram(Q[:, 0], bins=edges_x, density=True)
     cx = 0.5 * (edges_x[:-1] + edges_x[1:])
-    axes[0].plot(x, rho_x / (rho_x.sum() * dx), 'k-', lw=1.5, label='exact')
+    axes[0].plot(x, rho_x, 'k-', lw=1.5, label='exact')
     axes[0].bar(cx, hx, width=edges_x[1]-edges_x[0], alpha=0.4,
                 color='steelblue', label='samples')
     axes[0].set_title('x-marginal')
@@ -148,10 +170,11 @@ def test_2d_init():
 
     # y-marginal
     rho_y = (np.abs(psi0)**2).sum(axis=0) * dx
+    rho_y /= rho_y.sum() * dx
     edges_y = np.linspace(y[0], y[-1], 101)
     hy, _ = np.histogram(Q[:, 1], bins=edges_y, density=True)
     cy = 0.5 * (edges_y[:-1] + edges_y[1:])
-    axes[1].plot(y, rho_y / (rho_y.sum() * dx), 'k-', lw=1.5, label='exact')
+    axes[1].plot(y, rho_y, 'k-', lw=1.5, label='exact')
     axes[1].bar(cy, hy, width=edges_y[1]-edges_y[0], alpha=0.4,
                 color='coral', label='samples')
     axes[1].set_title('y-marginal')
@@ -161,6 +184,18 @@ def test_2d_init():
     fig.tight_layout()
     fig.savefig(output_path('test_init_2d.png'), dpi=120)
     plt.close(fig)
+
+    # KS assertions on each marginal
+    cdf_x = np.cumsum(rho_x) * dx; cdf_x /= cdf_x[-1]
+    ks_x = _ks_stat(Q[:, 0], x, cdf_x)
+    assert ks_x < KS_THRESHOLD, \
+        f"x-marginal KS statistic {ks_x:.4f} exceeds threshold {KS_THRESHOLD}"
+
+    cdf_y = np.cumsum(rho_y) * dx; cdf_y /= cdf_y[-1]
+    ks_y = _ks_stat(Q[:, 1], y, cdf_y)
+    assert ks_y < KS_THRESHOLD, \
+        f"y-marginal KS statistic {ks_y:.4f} exceeds threshold {KS_THRESHOLD}"
+
     print("[PASS] 2-D init marginal density plots saved.")
 
 
@@ -177,18 +212,18 @@ def test_nd_vs_2d():
     psi0 /= norm
 
     Np_test = 2000
-    Q_2d, S_2d = init_ensemble_2d(psi0, [x, y], Np_test, seed=99)
-    Q_nd, S_nd = init_ensemble_nd(psi0, [x, y], Np_test, seed=99)
+    ens_2d = init_ensemble_2d(psi0, [x, y], Np_test, seed=99)
+    ens_nd = init_ensemble_nd(psi0, [x, y], Np_test, seed=99)
 
     # Both should produce similar mean positions (same seed, same algorithm)
-    print(f"  2D mean: ({Q_2d[:,0].mean():.3f}, {Q_2d[:,1].mean():.3f})")
-    print(f"  ND mean: ({Q_nd[:,0].mean():.3f}, {Q_nd[:,1].mean():.3f})")
+    print(f"  2D mean: ({ens_2d.X[:,0].mean():.3f}, {ens_2d.X[:,1].mean():.3f})")
+    print(f"  ND mean: ({ens_nd.X[:,0].mean():.3f}, {ens_nd.X[:,1].mean():.3f})")
 
     # Phases should be identical (same positions → same interpolation)
     # (Positions differ slightly due to algorithmic paths, so just check
     # that both are reasonable.)
-    assert np.all(np.isfinite(Q_nd)), "ND positions not finite!"
-    assert np.all(np.isfinite(S_nd)), "ND phases not finite!"
+    assert np.all(np.isfinite(ens_nd.X)), "ND positions not finite!"
+    assert np.all(np.isfinite(ens_nd.S)), "ND phases not finite!"
     print("[PASS] N-D init (D=2) produces finite, reasonable output.")
 
 
@@ -201,10 +236,12 @@ def test_phase_optimization():
     Np_opt = 300   # small N to make optimization fast and effect visible
     h_kde = 0.5
 
-    X, S_raw = init_ensemble_1d(psi0, x, Np_opt, method='deterministic')
-    _, S_opt = init_ensemble_1d(psi0, x, Np_opt, method='deterministic',
-                                optimize_phase=True, h_kde=h_kde,
-                                phase_opt_iters=30)
+    ens_raw = init_ensemble_1d(psi0, x, Np_opt, method='deterministic')
+    X, S_raw = ens_raw.X, ens_raw.S
+    ens_opt = init_ensemble_1d(psi0, x, Np_opt, method='deterministic',
+                               optimize_phase=True, h_kde=h_kde,
+                               phase_opt_iters=30)
+    S_opt = ens_opt.S
 
     # Evaluate ψ-KDE with raw and optimised phases
     psi_raw = _psi_kde_on_grid(X, S_raw, x, h_kde, HBAR)
