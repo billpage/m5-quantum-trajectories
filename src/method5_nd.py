@@ -48,8 +48,8 @@ Usage
 """
 
 import argparse, time, warnings, sys
-from m5_utils import output_path
-from m5_fft_ref import schrodinger_fft_1d as _schrodinger_fft_1d
+from m5.utils import output_path
+from m5.fft_ref import schrodinger_fft_1d as _schrodinger_fft_1d
 warnings.filterwarnings("ignore")
 
 import numpy as np

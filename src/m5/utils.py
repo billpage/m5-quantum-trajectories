@@ -1,5 +1,5 @@
 """
-m5_utils.py — Shared utilities for M5 quantum trajectory scripts.
+m5/utils.py — Shared utilities for M5 quantum trajectory scripts.
 
 Output directory convention
 ---------------------------

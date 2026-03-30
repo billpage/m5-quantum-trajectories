@@ -26,9 +26,8 @@ Outputs
 """
 
 import sys, time, warnings
-from m5_utils import output_path
-from m5_fft_ref import schrodinger_fft_2d
-from m5_fft_ref import schrodinger_fft_2d
+from m5.utils import output_path
+from m5.fft_ref import schrodinger_fft_2d
 warnings.filterwarnings("ignore")
 
 import numpy as np

@@ -1,5 +1,5 @@
 """
-m5_init.py — Particle ensemble initialization for M5 quantum trajectories.
+m5/init.py — Particle ensemble initialization for M5 quantum trajectories.
 
 Provides unified initialization of particle positions X and action phases S
 from an initial wavefunction ψ₀, supporting:
@@ -11,20 +11,20 @@ from an initial wavefunction ψ₀, supporting:
 
 Typical usage (1-D)
 -------------------
-    from m5_init import init_ensemble_1d, Ensemble, Units
+    from m5.init import init_ensemble_1d, Ensemble, Units
 
     x = np.linspace(-15, 15, 512, endpoint=False)
     psi0 = my_wavefunction(x)
     ens = init_ensemble_1d(psi0, x, Np=4000)
 
     # Pass to simulation:
-    from m5_sim import m5_simulate
+    from m5.sim import m5_simulate
     result = m5_simulate(ens, V_func=my_V, T=2.0, Nt=2000,
                          mode='gridless', x_grid=x)
 
 Typical usage (2-D)
 -------------------
-    from m5_init import init_ensemble_2d
+    from m5.init import init_ensemble_2d
 
     axes = [np.linspace(-8, 8, 256, endpoint=False)] * 2
     psi0_2d = my_wavefunction_2d(*np.meshgrid(*axes, indexing='ij'))
@@ -62,7 +62,7 @@ class Ensemble:
 
     Carries the per-world-particle state (X, S) and the per-DOF mass.
     Grid information and physical constants (ℏ) are supplied separately
-    to the simulation driver m5_sim.m5_simulate().
+    to the simulation driver m5.sim.m5_simulate().
 
     Attributes
     ----------

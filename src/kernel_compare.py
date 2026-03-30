@@ -16,8 +16,8 @@ convention fix applied.
 
 import numpy as np
 import time, sys, os
-from m5_utils import output_path
-from m5_fft_ref import schrodinger_fft_1d
+from m5.utils import output_path
+from m5.fft_ref import schrodinger_fft_1d
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

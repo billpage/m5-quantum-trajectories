@@ -1,5 +1,5 @@
 """
-m5_fft_ref.py — Split-operator FFT reference solvers for the Schrödinger equation.
+m5/fft_ref.py — Split-operator FFT reference solvers for the Schrödinger equation.
 
 Provides exact (up to time-step error) propagation on a uniform grid via
 the standard split-operator method:
@@ -11,7 +11,7 @@ regardless of whether CuPy is available in the caller.
 
 Usage
 -----
-    from m5_fft_ref import schrodinger_fft_1d, schrodinger_fft_2d
+    from m5.fft_ref import schrodinger_fft_1d, schrodinger_fft_2d
 
     psi_snaps, t_snaps = schrodinger_fft_1d(
         psi0, V_grid, x, T, Nt, hbar=1.0, mass=1.0, save_every=10

@@ -19,10 +19,10 @@ Usage:
 import sys, time, argparse
 import numpy as np
 
-from m5_utils import output_path
-from m5_fft_ref import schrodinger_fft_1d
-from m5_init import init_ensemble_1d, Ensemble, Units
-from m5_sim import (m5_simulate, select_backend,
+from m5.utils import output_path
+from m5.fft_ref import schrodinger_fft_1d
+from m5.init import init_ensemble_1d, Ensemble, Units
+from m5.sim import (m5_simulate, select_backend,
                     kernel_sums, psi_kde_fields)
 
 import warnings

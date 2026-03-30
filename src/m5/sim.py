@@ -1,5 +1,5 @@
 """
-m5_sim.py — Unified simulation driver for M5 quantum trajectories.
+m5/sim.py — Unified simulation driver for M5 quantum trajectories.
 =================================================================
 
 Provides a single entry point for running 1-D M5 simulations in two modes:
@@ -18,15 +18,15 @@ Provides a single entry point for running 1-D M5 simulations in two modes:
                 GPU via xp (numpy/cupy) abstraction.
 
 Separation of concerns:
-  • Ensemble  (m5_init) — particle state: X, S, mass
-  • Units     (m5_init) — physical constants: hbar
+  • Ensemble  (m5.init) — particle state: X, S, mass
+  • Units     (m5.init) — physical constants: hbar
   • x_grid    — spatial grid, required for 'grid' mode,
                 optional for 'gridless' (enables V precomputation)
 
 Usage
 -----
-    from m5_init import init_ensemble_1d, Units
-    from m5_sim import m5_simulate
+    from m5.init import init_ensemble_1d, Units
+    from m5.sim import m5_simulate
 
     x = np.linspace(-15, 15, 512, endpoint=False)
     psi0_grid = my_wavefunction(x)
@@ -40,7 +40,7 @@ Usage
 import numpy as np
 import time
 
-from m5_init import Ensemble, Units
+from .init import Ensemble, Units
 
 
 # ═══════════════════════════════════════════════════════════════════════
