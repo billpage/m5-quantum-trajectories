@@ -186,6 +186,10 @@ def main():
                         help='Reduced params for quick testing')
     parser.add_argument('--test', type=str, default=None,
                         help='Run single test: free_gauss|cat_state|ho_ground')
+    parser.add_argument('--Np', type=int, default=None,
+                        help='Override number of particles')
+    parser.add_argument('--Nt', type=int, default=None,
+                        help='Override number of time steps')
     args = parser.parse_args()
 
     force = 'cpu' if args.cpu else ('gpu' if args.gpu else None)
@@ -211,6 +215,15 @@ def main():
             d['T'] = min(d['T'], 1.0)
             d['h_kde'] = max(d['h_kde'], 0.35)
             d['save_every'] = max(1, d['Nt'] // 15)
+
+    # --Np / --Nt overrides (applied after --quick so they take precedence)
+    if args.Np is not None or args.Nt is not None:
+        for _, _, _, _, d in cases:
+            if args.Np is not None:
+                d['Np'] = args.Np
+            if args.Nt is not None:
+                d['Nt'] = args.Nt
+                d['save_every'] = max(1, d['Nt'] // 15)
 
     results = {}
 
