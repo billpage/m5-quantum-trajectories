@@ -654,6 +654,19 @@ def main():
     parser.add_argument('--test', type=str, action='append', default=None,
                         help='Run specific test(s): free_gauss, cat_state, '
                              'ho_ground, ho_coherent, eckart')
+    # ── Parameter overrides (applied to all selected test cases) ─────
+    parser.add_argument('--Np', type=int, default=None,
+                        help='Override particle count')
+    parser.add_argument('--Nt', type=int, default=None,
+                        help='Override number of time steps')
+    parser.add_argument('--sigma-kde', type=float, default=None,
+                        help='Override grid-mode KDE bandwidth (grid cells)')
+    parser.add_argument('--h-kde', type=float, default=None,
+                        help='Override gridless-mode kernel bandwidth')
+    parser.add_argument('--sigma-gh', type=float, default=None,
+                        help='Override gridless-mode GH probe scale')
+    parser.add_argument('--K-gh', type=int, default=None,
+                        help='Override gridless-mode GH quadrature order')
     args = parser.parse_args()
 
     force = 'cpu' if args.cpu else ('gpu' if args.gpu else None)
@@ -687,6 +700,22 @@ def main():
             # Note: T is NOT truncated — each test needs its full
             # propagation time for meaningful physics (e.g. Eckart
             # tunneling, HO coherent oscillation).
+
+    # ── Apply CLI parameter overrides ────────────────────────────────
+    for c in cases:
+        if args.Np is not None:
+            c['Np'] = args.Np
+        if args.Nt is not None:
+            c['Nt'] = args.Nt
+            c['save_every'] = max(1, c['Nt'] // 20)
+        if args.sigma_kde is not None:
+            c['grid_params']['sigma_kde'] = args.sigma_kde
+        if args.h_kde is not None:
+            c['gridless_params']['h_kde'] = args.h_kde
+        if args.sigma_gh is not None:
+            c['gridless_params']['sigma_gh'] = args.sigma_gh
+        if args.K_gh is not None:
+            c['gridless_params']['K_gh'] = args.K_gh
 
     all_results = {}
 
