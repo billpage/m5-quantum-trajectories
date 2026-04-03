@@ -240,12 +240,17 @@ def energy_from_psi(psi_grid, V_grid, x_grid, hbar=HBAR, mass=MASS):
 
 
 def compute_energy_series(result, V_grid, x_grid, mode,
-                          sigma_kde=2.5, hbar=HBAR, mass=MASS):
+                          sigma_kde_energy=2.5, hbar=HBAR, mass=MASS):
     """Compute energy at each snapshot for a simulation result.
 
-    For grid mode: uses the stored ψ_grid snapshots directly.
-    For gridless mode: reconstructs ψ on x_grid from (X, S) via
-    CIC + Gaussian smooth (same algorithm as grid mode's ψ-KDE).
+    Always reconstructs ψ on x_grid from (X, S) particle snapshots
+    via CIC + Gaussian smooth, then evaluates ⟨Ĥ⟩ via FFT.
+
+    sigma_kde_energy controls the reconstruction bandwidth (in grid
+    cells).  This is independent of the simulation's σ_kde: the
+    simulation may use a narrow bandwidth for sharp dynamics, but
+    the energy diagnostic needs wider smoothing to suppress shot
+    noise in the FFT kinetic energy ∫|ψ'|² dx.
 
     Returns (t_save, E_kin, E_pot, E_total) arrays.
     """
@@ -258,14 +263,11 @@ def compute_energy_series(result, V_grid, x_grid, mode,
     x_dev = np.asarray(x_grid, dtype=np.float64)
 
     for si in range(Ns):
-        if mode == 'grid' and 'psi' in result:
-            psi_snap = result['psi'][si]
-        else:
-            # Reconstruct ψ on grid from particles
-            X_snap = np.asarray(result['X'][si], dtype=np.float64)
-            S_snap = np.asarray(result['S'][si], dtype=np.float64)
-            psi_snap, _ = _grid_psi_kde(
-                X_snap, S_snap, x_dev, sigma_kde, hbar, np)
+        # Always reconstruct from particles for consistency
+        X_snap = np.asarray(result['X'][si], dtype=np.float64)
+        S_snap = np.asarray(result['S'][si], dtype=np.float64)
+        psi_snap, _ = _grid_psi_kde(
+            X_snap, S_snap, x_dev, sigma_kde_energy, hbar, np)
 
         ek, ep, et = energy_from_psi(psi_snap, V_grid, x_grid,
                                      hbar=hbar, mass=mass)
@@ -619,14 +621,19 @@ def run_case(case, force_backend=None):
     print(f"    done ({res_gridless['wall_time']:.1f}s)")
 
     # ── Energy diagnostics ───────────────────────────────────────────
-    print(f"    Energy diagnostics...", end=" ", flush=True)
+    # Fixed reconstruction bandwidth for energy — wide enough to
+    # suppress shot noise in the FFT kinetic energy ∫|ψ'|²dx,
+    # independent of the simulation's σ_kde.
+    SIGMA_KDE_ENERGY = 2.5
+    print(f"    Energy diagnostics (σ_recon={SIGMA_KDE_ENERGY})...",
+          end=" ", flush=True)
     t0 = time.time()
     E_grid = compute_energy_series(
         res_grid, V_grid, x_grid, mode='grid',
-        sigma_kde=gp['sigma_kde'])
+        sigma_kde_energy=SIGMA_KDE_ENERGY)
     E_gridless = compute_energy_series(
         res_gridless, V_grid, x_grid, mode='gridless',
-        sigma_kde=gp['sigma_kde'])
+        sigma_kde_energy=SIGMA_KDE_ENERGY)
     print(f"({time.time() - t0:.1f}s)")
 
     # ── L² density error ─────────────────────────────────────────────
