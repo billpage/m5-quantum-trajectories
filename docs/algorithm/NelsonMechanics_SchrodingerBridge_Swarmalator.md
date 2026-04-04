@@ -74,6 +74,8 @@ The dynamical structure — STEER, WEIGH, backward channel, Holland bi-HJ — is
 
 Let K_h(u) = (2πh²)^{-1/2} exp(−u²/2h²) be a Gaussian kernel with bandwidth h (in physical units). For an ensemble {Xⱼ, Sⱼ}, j = 1,...,Np, define:
 
+(**Note:** The Gaussian is the default choice but not the only option. Any non-negative, normalised, symmetric, sufficiently smooth kernel can be used; see §10 for alternatives.)
+
 **Density KDE:**
 
     n_h(x) = (1/Np) Σⱼ K_h(x − Xⱼ)
@@ -460,9 +462,55 @@ The GH WEIGH scale σ_gh controls the probe cloud width for the quantum potentia
 
 ---
 
-## 10. Coherent vs Incoherent: The Fundamental Distinction
+## 10. Kernel and Probe Alternatives
 
-### 10.1 Two Ways to Estimate Velocity
+### 10.1 Why the Gaussian Kernel Is Not the Only Choice
+
+The algorithm in §7.2 uses K_h in two roles: (a) the ψ-KDE kernel for density and coherent current sums, and (b) implicitly through the derivative kernel K'_h for the velocity readout. §2 defined K_h as a Gaussian, but the algorithm requires only that K be non-negative, normalised, symmetric, and sufficiently smooth (§2 of *kernel_probe_theory.md* lists the full requirements). Any kernel satisfying these conditions can be substituted without changing the STEER/WEIGH/backward-channel theorems.
+
+### 10.2 Compact Rational Kernel
+
+The compact rational kernel with exponent n = 4 and support radius R = 2.5h is:
+
+    K_R(Δ) = C₄ (1 − (Δ/R)²)⁴    for |Δ| < R
+           = 0                      for |Δ| ≥ R
+
+with C₄ = 315/(256 R). This kernel is C⁶ smooth (K through K⁽⁶⁾ continuous everywhere, including at the support boundary), and its second moment is μ₂ = R²/(2n+3) ≈ 0.568 h² — 57% of the Gaussian value h² at the same bandwidth parameter h. The smaller μ₂ reduces the leading-order bias in the density estimate and hence in the quantum potential Q.
+
+The kernel sums n(x) = Σⱼ K(x − Xⱼ) are sums of 8th-degree polynomials in (x − Xⱼ), making the density ratio −n'/n a **rational function** of particle positions. This is algebraically compatible with Poirier's C-coordinate variables (see *kernel_expressions.md* §4), whereas the Gaussian kernel produces transcendental (exponential) sums.
+
+### 10.3 Gauss–Jacobi Probes
+
+The candidate cloud for STEER/WEIGH uses probe points x_k = X_class + η_k displaced from the classical-step position. §4.2 of the companion Algorithm document defined these as Gauss–Hermite (GH) nodes: η_k = √2 σ_gh ξ_k. GH nodes are unbounded — at K = 8, the outermost node reaches |η| ≈ 5.9 σ_gh, which for σ_gh = 0.20 is 1.17 in physical units, comparable to the entire width of the HO ground state.
+
+Gauss–Jacobi (GJ) quadrature with weight function (1 − t²)^n on [−1, 1] provides bounded nodes |t_k| < 1. With probe radius R_probe = σ_gh √(2n+3), the probe variance matches the GH value:
+
+    ⟨η²⟩ = R_probe² / (2n+3) = σ_gh²
+
+so the WEIGH formula Q = −(ℏ²/mσ²)(M₊ − 1) is unchanged. For K = 8, n = 4: the maximum probe displacement is |η_max| ≈ 0.64 at σ_gh = 0.20, a 45% reduction from the GH value. All probes stay within ~1σ of the wavefunction width, where the ψ-KDE estimate is reliable.
+
+Both GH and GJ at K nodes are exact for polynomial integrands of degree ≤ 2K − 1. The advantage of GJ is bounded support, not superior polynomial accuracy.
+
+### 10.4 Four Combinations
+
+The kernel and probe choices are independent, giving four testable configurations:
+
+| Configuration | Kernel | Probe | Key property |
+|---------------|--------|-------|--------------|
+| Baseline | Gaussian | Hermite | Original implementation |
+| Compact kernel only | Compact | Hermite | Lower μ₂, rational sums, unbounded probes |
+| Jacobi probes only | Gaussian | Jacobi | Bounded probes, Gaussian KDE |
+| **Compact + Jacobi** | **Compact** | **Jacobi** | **Lower μ₂, rational sums, bounded probes** |
+
+The `m5_simulate()` function accepts `kernel='gaussian'|'compact'` and `probe='hermite'|'jacobi'` parameters. The `m5_compare.py` script supports `--kernel` and `--probe` CLI flags.
+
+Initial quick-mode results on the HO ground state (Np = 600) show compact/Jacobi reducing L² error by 14% and energy drift by 42% relative to baseline. Full analysis: *kernel_probe_theory.md* §5.
+
+---
+
+## 11. Coherent vs Incoherent: The Fundamental Distinction
+
+### 11.1 Two Ways to Estimate Velocity
 
 **Incoherent (grid M5):** Bin phases Sⱼ by position → average in each bin → smooth → finite-difference gradient:
 
@@ -476,7 +524,7 @@ This averages S values first, then differentiates. Near a node, particles from t
 
 The complex sum j automatically performs destructive interference at nodes. The phase gradient of j is the gradient of the resultant phasor, which correctly reflects the dominant flow direction even when two branches overlap.
 
-### 10.2 The Coherent Average as a Quantum Postulate
+### 11.2 The Coherent Average as a Quantum Postulate
 
 From the swarmalator perspective, the distinction between classical and quantum coupling is precisely the distinction between incoherent and coherent averaging:
 
@@ -489,15 +537,15 @@ From the swarmalator perspective, the distinction between classical and quantum 
 
 The coherent averaging is what makes the coupling quantum. It is a single postulate that simultaneously produces interference patterns, nodal structure, and the quantum velocity field.
 
-### 10.3 Relationship to Wallstrom's Objection
+### 11.3 Relationship to Wallstrom's Objection
 
 The coherent average j_h automatically enforces integer winding numbers. When two branches interfere destructively, j passes smoothly through zero in the complex plane. On a closed loop around a node, arg(j) advances by exactly 2π — the quantisation condition ∮ ∇S · dl = 2πnℏ is built into the phasor structure of the coherent sum. This is the ψ-KDE's resolution of the Wallstrom objection: the quantisation is not an additional postulate but an automatic consequence of the coherent averaging of discrete phasors. Whether this constitutes a genuine resolution or merely shifts the postulate to the requirement that particles carry coherent phases remains an open philosophical question.
 
 ---
 
-## 11. Connection to Active Matter
+## 12. Connection to Active Matter
 
-### 11.1 The te Vrugt et al. Mapping
+### 12.1 The te Vrugt et al. Mapping
 
 Te Vrugt et al. (2023) derived a formal mapping between the microscopic Langevin equations of inertial active Brownian particles and the Madelung form of the Schrödinger equation. The correspondence identifies:
 
@@ -514,7 +562,7 @@ The swarmalator algorithm operationalises this mapping at the particle level. Ea
 5. Is constrained by the local density structure (√ρ selection)
 6. Updates its internal phase according to a Hamilton-Jacobi equation
 
-### 11.2 Key Disanalogies
+### 12.2 Key Disanalogies
 
 Despite the structural parallel, fundamental differences remain:
 
@@ -525,9 +573,9 @@ Despite the structural parallel, fundamental differences remain:
 
 ---
 
-## 12. Numerical Validation
+## 13. Numerical Validation
 
-### 12.1 Test Cases
+### 13.1 Test Cases
 
 The gridless swarmalator has been validated on three standard test cases:
 
@@ -539,7 +587,7 @@ The gridless swarmalator has been validated on three standard test cases:
 
 These results are proof-of-concept with very small particle counts. Larger Np (3000–8000) should yield accuracy comparable to or better than the grid-based M5.
 
-### 12.2 Velocity Quality
+### 13.2 Velocity Quality
 
 The swarmalator velocity v = Im(j'/j) shows markedly different error characteristics from the grid-based velocity ∂ₓS/m:
 
@@ -549,9 +597,9 @@ The swarmalator velocity v = Im(j'/j) shows markedly different error characteris
 
 ---
 
-## 13. Higher Dimensions
+## 14. Higher Dimensions
 
-### 13.1 Natural Generalisation
+### 14.1 Natural Generalisation
 
 The swarmalator coupling generalises to d dimensions without modification:
 
@@ -565,7 +613,7 @@ The gradient of the Gaussian kernel in d dimensions is:
 
 where r = Xᵢ − Xⱼ. The kernel sums remain particle-to-particle with no grid.
 
-### 13.2 Dimensional Scaling
+### 14.2 Dimensional Scaling
 
 Grid-based methods require O(Ng^d) grid points, which becomes prohibitive for d ≥ 3. The swarmalator cost is O(Np · K_nbr) where K_nbr grows as h^d · Np / V (V = domain volume). By choosing h to keep K_nbr ≈ 100–500, the cost grows linearly in Np regardless of dimension.
 
@@ -573,23 +621,25 @@ This makes the swarmalator the natural choice for multi-particle quantum dynamic
 
 ---
 
-## 14. Summary
+## 15. Summary
 
 The quantum swarmalator is a gridless reformulation of Method 5 in which:
 
-1. **Velocity** comes from the coherent coupling v = (ℏ/m) Im(j'/j) — a direct particle-to-particle computation using the Gaussian kernel and its derivative, with no grid, no binning, and no finite differences.
+1. **Velocity** comes from the coherent coupling v = (ℏ/m) Im(j'/j) — a direct particle-to-particle computation using the kernel and its derivative, with no grid, no binning, and no finite differences.
 
 2. **Selection weights** √ρ = |j|/√n are evaluated at candidate positions by the ψ-KDE kernel sum, again with no grid intermediary.
 
-3. **Quantum potential** Q comes from GH WEIGH with √ρ evaluated by ψ-KDE at the probe points.
+3. **Quantum potential** Q comes from GH/GJ WEIGH with √ρ evaluated by ψ-KDE at the probe points.
 
-4. **Backward channel** (u', Q̃, Holland bi-HJ) is computed from ln ρ at GH probes, where ρ = |j|²/n from the same kernel sums.
+4. **Backward channel** (u', Q̃, Holland bi-HJ) is computed from ln ρ at probes, where ρ = |j|²/n from the same kernel sums.
 
-The single bandwidth parameter h controls all smoothing. The coherent averaging naturally produces interference, nodes, and phase quantisation. The physical picture is of active particles embedded in a phase bath, responding to the local coherence direction — a quantum Kuramoto coupling that, when combined with stochastic exploration and √ρ selection, reproduces the Schrödinger equation.
+The single bandwidth parameter h controls all smoothing. The kernel function (Gaussian or compact rational) and probe quadrature (Gauss–Hermite or Gauss–Jacobi) are independent choices that affect accuracy and stability without changing the algorithm's mathematical structure (§10). The compact rational kernel K(Δ) = C₄(1 − (Δ/R)²)⁴ offers lower MISE bias, rational kernel sums, and compact support; Gauss–Jacobi probes provide bounded displacement for tighter STEER selection.
+
+The coherent averaging naturally produces interference, nodes, and phase quantisation. The physical picture is of active particles embedded in a phase bath, responding to the local coherence direction — a quantum Kuramoto coupling that, when combined with stochastic exploration and √ρ selection, reproduces the Schrödinger equation.
 
 ---
 
-## 15. References
+## 16. References
 
 ### Swarmalator models
 
@@ -635,4 +685,6 @@ The single bandwidth parameter h controls all smoothing. The coherent averaging 
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Fisher information
 - `project_summary.md` — te Vrugt et al. active matter analysis
 - `complex_trajectories_analysis.md` — Yang & Han complex trajectory connection
+- `kernel_expressions.md` — Explicit kernel sum expressions, K''/K structure, Poirier connection
+- `kernel_probe_theory.md` — Compact rational kernel and Gauss–Jacobi probe theory, energy conservation analysis
 - `m5_gridless_opt.py` — Reference implementation of the gridless swarmalator algorithm

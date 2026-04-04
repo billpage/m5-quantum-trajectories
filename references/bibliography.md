@@ -87,3 +87,23 @@ Key papers and books underlying the M5 framework. Links are to freely available 
 
 - Schleich, W.P. et al. (2013). Schrödinger equation revisited. *Proc. Natl. Acad. Sci.* 110, 5374–5379.
   [DOI](https://doi.org/10.1073/pnas.1302475110)
+
+## Kernel Density Estimation, Quadrature, and SPH
+
+- Epanechnikov, V.A. (1969). Non-parametric estimation of a multivariate probability density. *Theory Prob. Appl.* 14, 153–158.
+  [DOI](https://doi.org/10.1137/1114019)
+
+- Silverman, B.W. (1986). *Density Estimation for Statistics and Data Analysis.* Chapman & Hall.
+
+- Wand, M.P. & Jones, M.C. (1995). *Kernel Smoothing.* Chapman & Hall.
+
+- Wendland, H. (1995). Piecewise polynomial, positive definite and compactly supported radial functions of minimal degree. *Adv. Comput. Math.* 4, 389–396.
+  [DOI](https://doi.org/10.1007/BF02123482)
+
+- Monaghan, J.J. (2005). Smoothed particle hydrodynamics. *Rep. Prog. Phys.* 68, 1703.
+  [DOI](https://doi.org/10.1088/0034-4885/68/8/R01)
+
+- Gautschi, W. (2004). *Orthogonal Polynomials: Computation and Approximation.* Oxford Univ. Press.
+
+- Golub, G.H. & Welsch, J.H. (1969). Calculation of Gauss quadrature rules. *Math. Comp.* 23, 221–230.
+  [DOI](https://doi.org/10.1090/S0025-5718-69-99647-1)
