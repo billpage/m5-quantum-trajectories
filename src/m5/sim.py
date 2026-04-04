@@ -176,7 +176,7 @@ def _grid_psi_kde(X, S, x_grid, sigma, hbar, xp):
 # ═══════════════════════════════════════════════════════════════════════
 
 def kernel_sums(eval_x, X_src, phi_src, h, xp, cutoff=4.0,
-                need_deriv=False, chunk_size=2048):
+                need_deriv=False, chunk_size=2048, kernel='gaussian'):
     """
     Compute ψ-KDE kernel sums at evaluation points.
 
@@ -185,6 +185,10 @@ def kernel_sums(eval_x, X_src, phi_src, h, xp, cutoff=4.0,
     phi_src:  (N_src,)    — source particle phases S/ℏ
     h:        scalar      — kernel bandwidth
     xp:       module      — numpy or cupy
+    kernel:   'gaussian' | 'compact'
+        'gaussian' — K(u) = (2πh²)^{-1/2} exp(-u²/2), cutoff at |Δ|<4h
+        'compact'  — K(Δ) = C₄(1-(Δ/R)²)⁴ for |Δ|<R, R=2.5h
+                     Compact support, C⁶ smooth, smaller μ₂ at same R.
 
     Returns dict with keys n, j_re, j_im [, jp_re, jp_im].
     """
@@ -199,26 +203,46 @@ def kernel_sums(eval_x, X_src, phi_src, h, xp, cutoff=4.0,
         jp_re_out = xp.zeros(N_eval, dtype=xp.float64)
         jp_im_out = xp.zeros(N_eval, dtype=xp.float64)
 
-    inv_h = 1.0 / h
-    norm = inv_h / (2.0 * PI) ** 0.5
-    radius = cutoff * h
+    if kernel == 'gaussian':
+        inv_h = 1.0 / h
+        norm = inv_h / (2.0 * PI) ** 0.5
+        radius = cutoff * h
+    elif kernel == 'compact':
+        R = 2.5 * h       # support radius
+        C4 = 315.0 / (256.0 * R)   # normalisation for (1-ξ²)⁴
+        radius = R
+    else:
+        raise ValueError(f"Unknown kernel '{kernel}'; "
+                         f"use 'gaussian' or 'compact'.")
 
     for i0 in range(0, N_eval, chunk_size):
         i1 = min(i0 + chunk_size, N_eval)
         dx = eval_x[i0:i1, None] - X_src[None, :]
 
         mask = xp.abs(dx) < radius
-        u = dx * inv_h
-        K = xp.where(mask, norm * xp.exp(-0.5 * u * u), 0.0)
 
-        n_out[i0:i1] = K.sum(axis=1)
-        j_re_out[i0:i1] = (K * cos_phi[None, :]).sum(axis=1)
-        j_im_out[i0:i1] = (K * sin_phi[None, :]).sum(axis=1)
+        if kernel == 'gaussian':
+            u = dx * inv_h
+            K = xp.where(mask, norm * xp.exp(-0.5 * u * u), 0.0)
+            if need_deriv:
+                Kp = xp.where(mask, -(dx / (h * h)) * K, 0.0)
+        else:  # compact
+            xi2 = (dx / R) ** 2
+            base = xp.maximum(1.0 - xi2, 0.0)
+            K = xp.where(mask, C4 * base ** 4, 0.0)
+            if need_deriv:
+                # K'(Δ) = C₄ · 4 · (-2Δ/R²) · (1-(Δ/R)²)³
+                Kp = xp.where(mask,
+                              C4 * 4.0 * (-2.0 * dx / (R * R))
+                              * base ** 3, 0.0)
+
+        n_out[i0:i1] += K.sum(axis=1)
+        j_re_out[i0:i1] += (K * cos_phi[None, :]).sum(axis=1)
+        j_im_out[i0:i1] += (K * sin_phi[None, :]).sum(axis=1)
 
         if need_deriv:
-            Kp = xp.where(mask, -(dx / (h * h)) * K, 0.0)
-            jp_re_out[i0:i1] = (Kp * cos_phi[None, :]).sum(axis=1)
-            jp_im_out[i0:i1] = (Kp * sin_phi[None, :]).sum(axis=1)
+            jp_re_out[i0:i1] += (Kp * cos_phi[None, :]).sum(axis=1)
+            jp_im_out[i0:i1] += (Kp * sin_phi[None, :]).sum(axis=1)
 
     result = dict(n=n_out, j_re=j_re_out, j_im=j_im_out)
     if need_deriv:
@@ -263,7 +287,7 @@ def psi_kde_fields(ks, xp, hbar=1.0, mass=1.0, eps_n=1e-30):
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# GH quadrature setup
+# Probe quadrature setup
 # ═══════════════════════════════════════════════════════════════════════
 
 def gh_nodes_weights(K_gh):
@@ -277,6 +301,78 @@ def gh_nodes_weights(K_gh):
     xi, omega = hermgauss(K_gh)
     omega /= omega.sum()
     return xi, omega
+
+
+def jacobi_nodes_weights(K, n_pow=4):
+    """Gauss–Jacobi nodes and normalised weights (CPU).
+
+    Weight function: (1 − t²)^n_pow on [−1, 1].  This is the
+    optimal quadrature for integrals against the compact rational
+    probe distribution K(t) = C · (1 − t²)^n.
+
+    Combined with probe offsets η = R · t, where R = σ_gh · √(2n+3),
+    the probe variance is:
+        E[η²] = R² · E[t²] = R² / (2n+3) = σ_gh²
+
+    Parameters
+    ----------
+    K : int
+        Number of quadrature nodes.
+    n_pow : int
+        Exponent of the (1−t²)^n weight function (default 4).
+
+    Returns
+    -------
+    nodes : (K,) array
+        Quadrature nodes on [−1, 1].
+    weights : (K,) array
+        Normalised weights (sum to 1).
+    """
+    from scipy.special import roots_jacobi
+    nodes, weights = roots_jacobi(K, n_pow, n_pow)
+    weights /= weights.sum()
+    return nodes, weights
+
+
+def make_probe(K_probe, sigma_gh, probe_type='hermite', n_pow=4):
+    """Create probe nodes and derived quantities for STEER/WEIGH.
+
+    Parameters
+    ----------
+    K_probe : int
+        Number of probe points.
+    sigma_gh : float
+        Standard deviation of the probe distribution (physical units).
+        Same meaning for both probe types.
+    probe_type : 'hermite' | 'jacobi'
+    n_pow : int
+        Exponent for Jacobi weight function (only used if probe='jacobi').
+
+    Returns
+    -------
+    dict with keys:
+        nodes     : (K,) array — raw quadrature nodes
+        weights   : (K,) array — normalised weights
+        offsets   : (K,) array — physical probe offsets from X_class
+        mu2       : float — second moment E[η²] of probe distribution
+        probe_type: str
+    """
+    if probe_type == 'hermite':
+        xi, omega = gh_nodes_weights(K_probe)
+        offsets = (2.0 ** 0.5) * sigma_gh * xi
+        mu2 = sigma_gh ** 2
+    elif probe_type == 'jacobi':
+        nodes, omega = jacobi_nodes_weights(K_probe, n_pow)
+        R_probe = sigma_gh * (2 * n_pow + 3) ** 0.5
+        offsets = R_probe * nodes
+        mu2 = sigma_gh ** 2    # R²/(2n+3) = σ_gh² by construction
+        xi = nodes
+    else:
+        raise ValueError(f"Unknown probe type '{probe_type}'; "
+                         f"use 'hermite' or 'jacobi'.")
+
+    return dict(nodes=xi, weights=omega, offsets=offsets,
+                mu2=mu2, probe_type=probe_type)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -295,9 +391,11 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
                 K_cand=48,            # candidates per particle
                 sigma_Q_smooth=1.5,   # extra smoothing on Q field
                 # ── Gridless-mode parameters ─────────────────────
-                K_gh=6,               # GH quadrature order
-                sigma_gh=0.20,        # GH probe scale (physical)
+                K_gh=6,               # quadrature order (probes)
+                sigma_gh=0.20,        # probe scale std dev (physical)
                 h_kde=0.25,           # kernel bandwidth (physical)
+                kernel='gaussian',    # 'gaussian' | 'compact'
+                probe='hermite',      # 'hermite' | 'jacobi'
                 # ── Backend ──────────────────────────────────────
                 backend=None,         # 'cpu' | 'gpu' | None (auto)
                 chunk_size=2048):     # max rows in kernel matrices
@@ -403,12 +501,13 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
 
     else:  # gridless
         params.update(K_gh=K_gh, sigma_gh=sigma_gh, h_kde=h_kde,
-                      chunk_size=chunk_size)
+                      chunk_size=chunk_size, kernel=kernel, probe=probe)
         return _gridless_sim(
             X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
             V_func, dt, Nt,
             hbar=hbar, mass=mass, Np=Np, xL=xL, xR=xR,
             K_gh=K_gh, sigma_gh=sigma_gh, h_kde=h_kde,
+            kernel=kernel, probe=probe,
             save_every=save_every, seed=seed,
             track_ids=track_ids, verbose=verbose,
             xp=xp, chunk_size=chunk_size, params=params)
@@ -568,6 +667,7 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
                   V_func, dt, Nt, *,
                   hbar, mass, Np, xL, xR,
                   K_gh, sigma_gh, h_kde,
+                  kernel, probe,
                   save_every, seed, track_ids, verbose,
                   xp, chunk_size, params):
     """
@@ -576,14 +676,26 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
     If x_grid_dev is provided, V is precomputed on the grid and
     interpolated to particle positions.  Otherwise, V_func(X) is
     evaluated directly each step.
+
+    Parameters kernel and probe control the ψ-KDE kernel shape and
+    the STEER/WEIGH probe distribution respectively:
+        kernel='gaussian'  — standard Gaussian KDE (default)
+        kernel='compact'   — compact rational (1−(Δ/R)²)⁴
+        probe='hermite'    — Gauss–Hermite probes (default)
+        probe='jacobi'     — Gauss–Jacobi probes (bounded support)
     """
     nu = hbar / (2.0 * mass)
     h = h_kde
     rng = np.random.default_rng(seed)
     use_grid_V = x_grid_dev is not None
 
-    xi_cpu, omega_cpu = gh_nodes_weights(K_gh)
-    xi = xp.asarray(xi_cpu, dtype=xp.float64)
+    # ── Probe setup ──────────────────────────────────────────────────
+    prb = make_probe(K_gh, sigma_gh, probe_type=probe)
+    offsets_cpu = prb['offsets']
+    omega_cpu = prb['weights']
+    mu2 = prb['mu2']      # probe variance (= σ_gh² for both types)
+
+    offsets_dev = xp.asarray(offsets_cpu, dtype=xp.float64)
     omega = xp.asarray(omega_cpu, dtype=xp.float64)
 
     X = xp.asarray(X_cpu, dtype=xp.float64)
@@ -616,7 +728,8 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
 
         # ══════════════ STEP 1: VELOCITY ══════════════════════════════
         ks_vel = kernel_sums(X, X, phi, h, xp,
-                             need_deriv=True, chunk_size=chunk_size)
+                             need_deriv=True, chunk_size=chunk_size,
+                             kernel=kernel)
         fields_vel = psi_kde_fields(ks_vel, xp, hbar=hbar, mass=mass)
         v_at = fields_vel['v']
 
@@ -624,9 +737,8 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
         X_class = X + v_at * dt
         X_class = xp.clip(X_class, xL + h, xR - h)
 
-        # ══════════════ STEP 3: SHARED GH CANDIDATE CLOUD ════════════
-        cand_offsets = (2.0 ** 0.5) * sigma_gh * xi
-        cands = X_class[:, None] + cand_offsets[None, :]
+        # ══════════════ STEP 3: PROBE CANDIDATE CLOUD ════════════════
+        cands = X_class[:, None] + offsets_dev[None, :]
         cands = xp.clip(cands, xL + h, xR - h)
         cands_flat = cands.reshape(-1)
 
@@ -634,7 +746,8 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
 
         # ══════════════ STEP 4: ψ-KDE AT ALL POINTS ══════════════════
         ks_all = kernel_sums(all_eval, X, phi, h, xp,
-                             need_deriv=False, chunk_size=chunk_size)
+                             need_deriv=False, chunk_size=chunk_size,
+                             kernel=kernel)
         f_all = psi_kde_fields(ks_all, xp, hbar=hbar, mass=mass)
 
         sqr_cands = f_all['sqrt_rho'][:Np * K_gh].reshape(Np, K_gh)
@@ -659,14 +772,14 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
         # ══════════════ STEP 6: FORWARD WEIGH (Q) ════════════════════
         M_plus = (omega[None, :] * sqr_cands).sum(axis=1)
         ratio = M_plus / xp.maximum(sqr_depart, 1e-30)
-        Q_at = -(hbar**2 / (mass * sigma_gh**2)) * (ratio - 1.0)
+        Q_at = -(hbar**2 / (mass * mu2)) * (ratio - 1.0)
 
         Q_med = xp.median(xp.abs(Q_at))
         Q_at = xp.clip(Q_at, -50.0 * Q_med - 1.0, 50.0 * Q_med + 1.0)
 
         # ══════════════ STEP 7: BACKWARD CHANNEL ═════════════════════
         L_k = (omega[None, :] * lnr_cands).sum(axis=1)
-        u_prime = nu * 2.0 * (L_k - lnr_depart) / (sigma_gh**2)
+        u_prime = nu * 2.0 * (L_k - lnr_depart) / mu2
         Q_tilde = Q_at + hbar * u_prime
 
         # ══════════════ STEP 8: PHASE UPDATE ══════════════════════════

@@ -608,14 +608,18 @@ def run_case(case, force_backend=None):
 
     # ── Gridless mode ────────────────────────────────────────────────
     glp = case['gridless_params']
+    gl_kernel = glp.get('kernel', 'gaussian')
+    gl_probe = glp.get('probe', 'hermite')
     print(f"    Gridless mode (K_gh={glp['K_gh']}, σ_gh={glp['sigma_gh']}, "
-          f"h_kde={glp['h_kde']})...", flush=True)
+          f"h_kde={glp['h_kde']}, kernel={gl_kernel}, "
+          f"probe={gl_probe})...", flush=True)
     t0 = time.time()
     res_gridless = m5_simulate(
         ens, V_func, T, Nt,
         mode='gridless', units=Units(hbar=HBAR), x_grid=x_grid,
         K_gh=glp['K_gh'], sigma_gh=glp['sigma_gh'],
         h_kde=glp['h_kde'],
+        kernel=gl_kernel, probe=gl_probe,
         save_every=save_every, seed=42,
         track_ids=track_ids, backend=force_backend)
     print(f"    done ({res_gridless['wall_time']:.1f}s)")
@@ -674,6 +678,12 @@ def main():
                         help='Override gridless-mode GH probe scale')
     parser.add_argument('--K-gh', type=int, default=None,
                         help='Override gridless-mode GH quadrature order')
+    parser.add_argument('--kernel', type=str, default=None,
+                        choices=['gaussian', 'compact'],
+                        help='Gridless ψ-KDE kernel: gaussian (default) or compact')
+    parser.add_argument('--probe', type=str, default=None,
+                        choices=['hermite', 'jacobi'],
+                        help='Gridless probe type: hermite (default) or jacobi')
     args = parser.parse_args()
 
     force = 'cpu' if args.cpu else ('gpu' if args.gpu else None)
@@ -723,6 +733,10 @@ def main():
             c['gridless_params']['sigma_gh'] = args.sigma_gh
         if args.K_gh is not None:
             c['gridless_params']['K_gh'] = args.K_gh
+        if args.kernel is not None:
+            c['gridless_params']['kernel'] = args.kernel
+        if args.probe is not None:
+            c['gridless_params']['probe'] = args.probe
 
     all_results = {}
 
