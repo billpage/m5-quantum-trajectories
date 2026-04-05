@@ -500,6 +500,12 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
             xp=xp, params=params)
 
     else:  # gridless
+        # ── Nelson scaling: tie probe scale to √dt ────────────────
+        if sigma_gh == 'nelson':
+            sigma_gh = (hbar * dt / mass) ** 0.5
+            if verbose:
+                print(f"    Nelson-scaled σ_gh = √(ℏ dt/m) = {sigma_gh:.6f}",
+                      flush=True)
         params.update(K_gh=K_gh, sigma_gh=sigma_gh, h_kde=h_kde,
                       chunk_size=chunk_size, kernel=kernel, probe=probe)
         return _gridless_sim(

@@ -674,8 +674,9 @@ def main():
                         help='Override grid-mode KDE bandwidth (grid cells)')
     parser.add_argument('--h-kde', type=float, default=None,
                         help='Override gridless-mode kernel bandwidth')
-    parser.add_argument('--sigma-gh', type=float, default=None,
-                        help='Override gridless-mode GH probe scale')
+    parser.add_argument('--sigma-gh', type=str, default=None,
+                        help='Override gridless-mode GH probe scale '
+                             '(float, or "nelson" for √(ℏ dt/m) scaling)')
     parser.add_argument('--K-gh', type=int, default=None,
                         help='Override gridless-mode GH quadrature order')
     parser.add_argument('--kernel', type=str, default=None,
@@ -730,7 +731,10 @@ def main():
         if args.h_kde is not None:
             c['gridless_params']['h_kde'] = args.h_kde
         if args.sigma_gh is not None:
-            c['gridless_params']['sigma_gh'] = args.sigma_gh
+            if args.sigma_gh.lower() == 'nelson':
+                c['gridless_params']['sigma_gh'] = 'nelson'
+            else:
+                c['gridless_params']['sigma_gh'] = float(args.sigma_gh)
         if args.K_gh is not None:
             c['gridless_params']['K_gh'] = args.K_gh
         if args.kernel is not None:
