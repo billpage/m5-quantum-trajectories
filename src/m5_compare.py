@@ -186,17 +186,19 @@ def make_test_cases():
     def V_eckart(x):
         return V0_eck / np.cosh(x / a_eck)**2
 
-    # Analytic transmission coefficient
+    # Analytic transmission coefficient for the BARRIER V = +V0 sech²(x/a).
+    # NB: The well (V = −V0 sech²) uses cos/cosh in the opposite branches;
+    # for the barrier the roles of cos² and cosh² are swapped.
     k_eck = p0_eck / HBAR
     lam = 8 * MASS * V0_eck * a_eck**2 / HBAR**2
     if lam > 1:
         T_analytic = (np.sinh(PI * k_eck * a_eck)**2 /
                       (np.sinh(PI * k_eck * a_eck)**2 +
-                       np.cos(0.5 * PI * np.sqrt(lam - 1))**2))
+                       np.cosh(0.5 * PI * np.sqrt(lam - 1))**2))
     else:
         T_analytic = (np.sinh(PI * k_eck * a_eck)**2 /
                       (np.sinh(PI * k_eck * a_eck)**2 +
-                       np.cosh(0.5 * PI * np.sqrt(1 - lam))**2))
+                       np.cos(0.5 * PI * np.sqrt(1 - lam))**2))
 
     cases.append(dict(
         tag='eckart', label='Eckart Barrier Tunneling',
