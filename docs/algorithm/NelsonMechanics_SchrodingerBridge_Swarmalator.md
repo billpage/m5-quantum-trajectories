@@ -329,9 +329,12 @@ PARAMETERS: σ_noise = √(ℏ/m),  ν = ℏ/(2m)
 ═══════════ CANDIDATE CLOUD (shared for STEER + WEIGH) ════
 
 3. GENERATE CANDIDATES
-   [Preferred: deterministic GH nodes, K = 4–8]
+   [Preferred: deterministic GH/GJ nodes, K = 4–8]
+   σ_gh = √(ℏ dt / m)    [Nelson scaling — required for correct √dt dynamics]
    For j = 1,...,K:
      x_j = X_class_k + √2 · σ_gh · ξ_j    (fixed GH nodes)
+   or:
+     x_j = X_class_k + R_probe · t_j        (fixed GJ nodes, R_probe = σ_gh√(2n+3))
 
    [Alternative: random antithetic candidates, K = 64–128]
    For j = 1,...,K/2:
@@ -504,7 +507,29 @@ The kernel and probe choices are independent, giving four testable configuration
 
 The `m5_simulate()` function accepts `kernel='gaussian'|'compact'` and `probe='hermite'|'jacobi'` parameters. The `m5_compare.py` script supports `--kernel` and `--probe` CLI flags.
 
-Initial quick-mode results on the HO ground state (Np = 600) show compact/Jacobi reducing L² error by 14% and energy drift by 42% relative to baseline. Full analysis: *kernel_probe_theory.md* §5.
+Initial quick-mode results on the HO ground state (Np = 600) show compact/Jacobi reducing L² error by 14% and energy drift by 42% relative to baseline.
+
+### 10.5 Nelson Scaling of the Probe Cloud
+
+The probe scale σ_gh was originally a free parameter (typically 0.15–0.20), chosen to balance WEIGH readout bias against sensitivity. However, the STEER selection step requires the probe variance to match the Nelson diffusion rate 2ν dt = (ℏ/m) dt per step, just as the original random-candidate algorithm used candidate offsets σ_noise √dt ξ_k. With a fixed σ_gh untethered from dt, the per-step STEER displacement is O(σ_gh) instead of O(√dt), producing trajectories that do not converge to Nelson dynamics as dt → 0.
+
+The fix is to set:
+
+    σ_gh = √(ℏ dt / m)
+
+This restores the correct √dt scaling while preserving the WEIGH readout accuracy — the signal (M₊ − 1 ∝ σ_gh²) and the 1/σ_gh² prefactor in Q cancel to leading order, making Q independent of σ_gh. The probes stay within the KDE correlation length h, where the density estimate is smooth and the noise cancellation holds (full analysis: *kernel_probe_theory.md* §5).
+
+With Nelson scaling, five-case GPU benchmarks (Np = 3000–4000, compact kernel, Jacobi probes) show:
+
+| Case | Grid ΔE (%) | Gridless ΔE (%) | Improvement |
+|------|-------------|-----------------|-------------|
+| Free Gaussian | 712 | 38.8 | 18× |
+| Cat State | 207 | 24.0 | 8.6× |
+| HO Ground | 2710 | 6.7 | 400× |
+| HO Coherent | 468 | 45.0 | 10× |
+| Eckart Barrier | 675 | 152 | 4.4× |
+
+Full analysis: *kernel_probe_theory.md* §6.
 
 ---
 

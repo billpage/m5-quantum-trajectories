@@ -143,13 +143,18 @@ With random candidates, antithetic pairing (including both +ξ and −ξ for eac
 
 ### 4.6 Choice of σ_gh and K
 
-The GH scale σ_gh controls the width of the probe cloud. It serves a role analogous to the Brownian noise scale σ√dt in the original formulation, but is now a free parameter (not tied to dt):
+The GH scale σ_gh controls the width of the probe cloud. It serves the same role as the Brownian noise scale σ√dt in the original formulation and **must scale as √dt** to produce correct Nelson dynamics:
 
-- **Bias**: O(σ_gh²) from truncation of the Taylor series. Smaller σ_gh reduces bias.
-- **Sensitivity**: The signal (M₊ − 1) scales as σ_gh², so smaller σ_gh means a smaller signal-to-noise ratio when using approximate (KDE) density.
-- **Optimal range**: σ_gh ∼ 0.1–0.3 for ℏ = m = 1 balances bias against KDE noise.
+    σ_gh = √(ℏ dt / m) = σ_noise · √dt
 
-K = 4–8 GH nodes suffice for smooth densities. The quadrature is exact for polynomials of degree ≤ 2K−1, so K = 8 handles 15th-degree corrections — far beyond what physical densities typically require.
+With this scaling, the per-step probe variance matches the Nelson diffusion rate 2ν dt, the expected osmotic drift is u · dt (matching the drift equivalence theorem), and the diffusion coefficient converges to 2ν as dt → 0. A fixed σ_gh untethered from dt produces trajectories whose diffusion variance diverges as dt → 0 — the algorithm does not converge to Nelson dynamics. See *kernel_probe_theory.md* §5 for the full analysis.
+
+The WEIGH readout accuracy is **not degraded** by small σ_gh: the signal M₊ − 1 ∝ σ_gh² and the 1/σ_gh² prefactor in Q cancel, making Q independent of σ_gh to leading order. The critical condition is that probes stay within the KDE bandwidth h, which is satisfied at all practical dt values.
+
+- **Bias**: O(σ_gh²) from truncation of the Taylor series. With Nelson scaling, σ_gh² = (ℏ/m) dt, so the bias decreases as dt → 0 — a favourable convergence property.
+- **Sensitivity**: The signal-to-noise cancellation (§5.3 of *kernel_probe_theory.md*) means the noise in Q is independent of σ_gh, so small σ_gh does not amplify noise.
+
+K = 4–8 GH (or GJ) nodes suffice for smooth densities. The quadrature is exact for polynomials of degree ≤ 2K−1, so K = 8 handles 15th-degree corrections — far beyond what physical densities typically require.
 
 ---
 
@@ -360,6 +365,7 @@ INPUT: Ensemble {X_k, S_k}, k = 1,...,Np
     double-count the classical force.]
 
 4. GH PROBE POINTS  [preferred: deterministic, K = 4–8]
+   σ_gh = √(ℏ dt / m)     [Nelson scaling — required for correct √dt dynamics]
    For j = 1,...,K:
      x_j = X_class_k + √2 · σ_gh · ξ_j     (fixed GH nodes, see §4.2)
    Evaluate: √ρ(x_j) and ln ρ(x_j) by grid interpolation
@@ -367,10 +373,11 @@ INPUT: Ensemble {X_k, S_k}, k = 1,...,Np
    [Alternative: random antithetic candidates, K = 64–128]
    For j = 1,...,K/2:
      ξ_j ~ N(0,1)
-     x_{2j-1} = X_class_k + σ√dt · ξ_j
-     x_{2j}   = X_class_k − σ√dt · ξ_j     (antithetic pair)
-   The GH variant eliminates Monte Carlo phase noise entirely (see §4.1, §9.1–9.3)
-   and is preferred in all 1D/low-dimensional cases.
+     x_{2j-1} = X_class_k + σ_noise · √dt · ξ_j
+     x_{2j}   = X_class_k − σ_noise · √dt · ξ_j     (antithetic pair)
+   With Nelson scaling, σ_gh = σ_noise · √dt, so both variants use the same
+   probe variance 2ν dt.  The GH variant eliminates Monte Carlo phase noise
+   entirely (see §4.1, §9.1–9.3) and is preferred in all 1D/low-dimensional cases.
 
 5. STEER (position update)
    w_j = √ρ(x_j)

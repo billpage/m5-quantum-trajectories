@@ -395,50 +395,157 @@ finite number of particles Np — remains to be established by systematic numeri
 
 ---
 
-## 5. Energy Conservation Analysis
+## 5. Nelson Scaling of the Probe Cloud
 
-### 5.1 Sources of Energy Drift
+### 5.1 The Probe Scale Problem
 
-The M5 algorithm conserves total energy E = T_current + T_osm + V + Q only approximately.  The
-main sources of drift are:
+The original random-candidate algorithm generated candidates at:
 
-(a) **Density estimation bias:** h > 0 implies a biased density estimate, hence biased Q.  The
-    bias is O(h² μ₂ ρ''/ρ).  Smaller μ₂ reduces this.
+    x'_k = X_class + σ_noise · √dt · ξ_k,    σ_noise = √(ℏ/m)
 
-(b) **WEIGH quadrature truncation:** The GH/GJ readout gives Q + O(σ_gh²).  The error depends
-    on the fourth derivative of √ρ.
+giving a per-step candidate variance of σ_noise² · dt = (ℏ/m) dt = 2ν dt.  This matches the variance
+of Nelson's Ito SDE dx = b dt + √(2ν) dW, ensuring that both the expected osmotic drift and the
+diffusion coefficient are correct.
 
-(c) **STEER stochastic noise:** The √ρ-weighted selection introduces an O(1/√K) noise in each
-    particle's position, which propagates through the density estimate.
+When GH quadrature replaced the random candidates, the probe offsets became:
 
-(d) **Phase accumulation error:** The Euler time-stepping of S introduces O(dt) error per step.
+    η_k = √2 · σ_gh · ξ_k
 
-(e) **Nelson diffusion noise:** The σ_noise √dt Brownian increment (when used) adds O(√dt) noise
-    to each position.
+with σ_gh treated as a free parameter (typically 0.15–0.20), untethered from dt.  This was done to
+optimise the WEIGH readout accuracy for Q, but it broke the √dt scaling:
 
-The compact kernel reduces source (a) by a factor μ₂^compact / μ₂^Gaussian = (R/h)²/(2n+3) ≈ 0.57
-at R = 2.5h, n = 4.  Static kernel comparison experiments (kernel_compare.py) showed ~40× less
-energy drift for the compact rational kernel vs Gaussian on the cat-state collision test, and ~470×
-less for the cubic B-spline, suggesting that source (a) may be the dominant contributor at large Np
-where sources (c)–(e) are controlled.
+| Quantity | Original (random) | GH (fixed σ_gh) |
+|----------|-------------------|-----------------|
+| Probe variance per step | 2ν dt | σ_gh² |
+| Expected osmotic drift | u · dt | σ_gh² · ½ ∂_x ln ρ |
+| Per-step diffusion std | √(2ν dt) | O(σ_gh) |
 
-### 5.2 Expected Improvement
+With σ_gh = 0.15 and dt = 0.001 (HO coherent run), the per-step probe variance is σ_gh² = 0.0225,
+while the correct Nelson value is 2ν dt = 0.001.  The probe cloud is 22.5× too wide.  Over T/dt
+steps, the total diffusion variance scales as σ_gh² · T/dt, which **diverges** as dt → 0 at fixed
+σ_gh — the algorithm does not converge to Nelson dynamics in the continuum limit.
 
-For the HO ground state with Np = 600 particles (quick mode), the initial test results are:
+### 5.2 The Fix: σ_gh = √(ℏ dt / m)
 
-| Kernel × Probe | L² error | Energy drift (%) |
-|----------------|----------|------------------|
-| Gaussian / Hermite | 0.241 | 166 |
-| Compact / Jacobi | 0.208 | 96 |
+Setting the probe scale to
 
-A 42% reduction in energy drift and 14% improvement in L² fidelity at identical particle count and
-bandwidth parameters.  Full Kaggle-scale runs (Np = 3000, extended time) are pending.
+    σ_gh = √(ℏ dt / m) = σ_noise · √dt = √(2ν dt)
+
+restores the correct Nelson scaling.  The probe variance is now 2ν dt per step, the expected osmotic
+displacement is u · dt, and the diffusion coefficient is 2ν — all matching Nelson's SDE.
+
+### 5.3 Why the WEIGH Readout Is Not Degraded
+
+A concern about small σ_gh is that the WEIGH signal M₊ − 1 ∝ σ_gh² becomes tiny, and dividing by
+σ_gh² in Q = −(ℏ²/(mσ²))(M₊ − 1) amplifies noise.  This concern is **unfounded**, because the
+signal-to-noise cancellation works in our favour.
+
+The leading Q estimate:
+
+    Q ≈ −(ℏ²/(mσ²)) · ½σ² · (√ρ)''/√ρ = −(ℏ²/2m) · (√ρ)''/√ρ
+
+is **independent of σ_gh** — the σ² in the signal cancels the σ² in the denominator.
+
+For the noise: if the ψ-KDE estimate of √ρ has error ε(x) that is smooth on the probe scale, then
+the noise contribution to M₊ − 1 is:
+
+    δ(M₊ − 1) ≈ ½ σ_gh² · ε''(x₀) / √ρ(x₀)
+
+Dividing by σ_gh² in the Q formula:
+
+    δQ = −(ℏ²/2m) · ε''(x₀) / √ρ(x₀)
+
+The σ_gh² cancels again.  The noise in Q depends on the **second derivative of the KDE error**,
+which is independent of σ_gh.
+
+The critical condition is that ε(x) must be smooth on the probe scale, i.e. the maximum probe
+displacement must be smaller than the KDE bandwidth h.  With Nelson scaling:
+
+| dt | σ_gh = √dt | Max probe (K=8, GH) | h_kde | Within h? |
+|----|-----------|---------------------|-------|-----------|
+| 0.001 | 0.032 | 0.13 | 0.22 | Yes (0.6h) |
+| 0.0005 | 0.022 | 0.09 | 0.22 | Yes (0.4h) |
+
+At all practical time steps, the Nelson-scaled probes stay well within the KDE correlation length,
+ensuring the noise cancellation holds.  By contrast, the fixed σ_gh = 0.15 puts probes out to 0.62,
+which is 2.8h — outside the well-resolved region.
+
+### 5.4 Connection to the Drift Equivalence Theorem
+
+The drift equivalence theorem (§3 of the companion Algorithm document) proves that √ρ-weighted
+selection over a Gaussian candidate cloud with variance σ² produces an expected osmotic displacement:
+
+    E[Δx_osmotic] = σ² · ½ ∂_x ln ρ
+
+With σ² = 2ν dt, this is u · dt — the correct Nelson osmotic drift for one time step.  With
+σ² = σ_gh² (fixed), the drift is σ_gh² · ½ ∂_x ln ρ, which is **not proportional to dt** and
+does not converge to the correct dynamics as dt → 0.
+
+The theorem itself is valid for any σ; the issue is that the physical interpretation requires
+σ² ∝ dt.  The GH quadrature transition preserved the theorem's mathematical content but lost the
+physical scaling constraint.
 
 ---
 
-## 6. Implementation Details
+## 6. Full Comparison Results
 
-### 6.1 Kernel Selection in m5/sim.py
+### 6.1 Five-Case Benchmark
+
+All results use Np = 3000–4000, compact rational kernel, Gauss–Jacobi probes, and Nelson-scaled
+σ_gh = √(ℏ dt/m), run on Tesla P100 GPU.  Grid mode uses σ_kde = 1.5.
+
+| Case | Grid L² | GL L² | Grid ΔE (%) | GL ΔE (%) | GL speedup (ΔE) |
+|------|---------|-------|-------------|-----------|-----------------|
+| Free Gaussian | 0.228 | 0.101 | 712 | 38.8 | 18× |
+| Cat State | 0.430 | 0.341 | 207 | 24.0 | 8.6× |
+| HO Ground | 0.300 | 0.035 | 2710 | 6.7 | 400× |
+| HO Coherent | 0.525 | 0.481 | 468 | 45.0 | 10× |
+| Eckart Barrier | 0.352 | 0.209 | 675 | 152 | 4.4× |
+
+The gridless swarmalator with Nelson scaling wins on every metric for every test case.  Energy
+conservation is single-digit percent for the stationary state and under 50% for all dynamic cases
+except the Eckart barrier tunneling.
+
+### 6.2 Effect of Nelson Scaling
+
+Isolating the contribution of Nelson scaling (all gridless, compact/Jacobi):
+
+| Case | ΔE (fixed σ_gh=0.15) | ΔE (Nelson) | Improvement |
+|------|----------------------|-------------|-------------|
+| HO Ground (Np=3000) | 16.8% | 6.7% | 2.5× |
+| HO Coherent (Np=3000) | 166% | 45% | 3.7× |
+
+The Nelson scaling produced the largest improvement on the coherent state, where the trajectory
+noise from oversized STEER displacements was the dominant error.  On the stationary ground state,
+the improvement is still substantial but smaller, since density estimation bias (addressed by the
+compact kernel) was already the dominant source.
+
+### 6.3 Trajectory Quality
+
+With Nelson scaling, the HO coherent state trajectories show clean sinusoidal oscillations between
+x = +2 and x = −2, tightly tracking the exact wavepacket center.  Without Nelson scaling, the same
+trajectories showed particles scattering to x = ±5, with the oscillation barely visible under the
+noise.
+
+The HO ground state trajectories are tightly confined within ±2σ of the origin (σ_ψ ≈ 0.71),
+consistent with stationary-state dynamics.  Grid mode trajectories wander to x = ±5 due to
+uncontrolled diffusion noise.
+
+### 6.4 Notes on the Eckart Barrier
+
+The Eckart barrier is the weakest case at 152% energy drift.  Tunneling involves splitting the
+wavepacket into transmitted and reflected portions with a node forming between them.  The ψ-KDE
+must resolve both the node and the very different densities on either side of the barrier.  The
+transmission coefficients reflect this difficulty: analytic T ≈ 1.00, FFT reference T = 0.44,
+gridless T = 0.18, grid T = 0.03.  Gridless is 7× closer to the FFT reference than grid mode,
+but both substantially underpredict transmission.  The gap between the analytic T and the FFT T
+suggests the FFT domain or resolution may also be marginal.
+
+---
+
+## 7. Implementation Details
+
+### 7.1 Kernel Selection in m5/sim.py
 
 The `kernel_sums()` function accepts a `kernel` parameter:
 
@@ -449,7 +556,7 @@ Both branches compute n, j_re, j_im (and optionally jp_re, jp_im for velocities)
 chunked outer-product loop.  The compact kernel is cheaper per pair because it avoids the exp()
 evaluation, but this is partially offset by the base⁴ and base³ power computations.
 
-### 6.2 Probe Selection in m5/sim.py
+### 7.2 Probe Selection in m5/sim.py
 
 The `make_probe()` function accepts a `probe_type` parameter:
 
@@ -464,21 +571,29 @@ The `make_probe()` function accepts a `probe_type` parameter:
 
 Both return a dict with keys: nodes, weights, offsets, mu2, probe_type.
 
-### 6.3 CLI for m5_compare.py
+### 7.3 Nelson Scaling in m5/sim.py
 
-    python m5_compare.py --kernel compact --probe jacobi [other options]
+Passing `sigma_gh='nelson'` to `m5_simulate()` resolves the probe scale at dispatch time:
 
-The four combinations (gaussian/hermite, gaussian/jacobi, compact/hermite, compact/jacobi)
-can be tested independently.
+    σ_gh = √(ℏ dt / m)
 
-### 6.4 Existing Tests
+This is computed once from dt = T/Nt and the physical constants, then passed to `make_probe()`.
+The rest of the algorithm is unchanged — the WEIGH formula uses mu2 = σ_gh² as before.
+
+### 7.4 CLI for m5_compare.py
+
+    python m5_compare.py --kernel compact --probe jacobi --sigma-gh nelson [other options]
+
+The `--sigma-gh` flag accepts either a numeric value (e.g. `0.15`) or the string `nelson`.
+
+### 7.5 Existing Tests
 
 The test suite `tests/test_m5_sim.py` includes 16 tests covering both kernel and probe options.
 All tests pass for all four kernel×probe combinations.
 
 ---
 
-## 7. Relationship to SPH Kernels
+## 8. Relationship to SPH Kernels
 
 The compact rational kernel (1 − ξ²)^n belongs to a family widely used in smoothed particle
 hydrodynamics (SPH), where it is known as the Wendland or generalised polynomial kernel.  Key
@@ -501,44 +616,55 @@ and action phase.  The kernel's role in the coherent sum j = Σ K exp(iS/ℏ) ha
 
 ---
 
-## 8. Summary and Recommendations
+## 9. Summary and Recommendations
 
-### 8.1 Kernel Choice
+### 9.1 Kernel Choice
 
 The compact rational kernel with n = 4, R = 2.5h is recommended as the default for new simulations.
-It offers:
+It offers lower MISE bias (μ₂ = 0.57 h² vs h² for Gaussian), compact support (natural O(Np · K_nbr)
+scaling), C⁶ smoothness (sufficient for Q readout), rational kernel sums (algebraically compatible
+with Poirier C-coordinates), and cheaper per-pair evaluation (no exp() call).  The Gaussian kernel
+remains available as a baseline.
 
-- Lower MISE bias (μ₂ = 0.57 h² vs h² for Gaussian)
-- Compact support (natural O(Np · K_nbr) scaling, no arbitrary truncation radius)
-- C⁶ smoothness (sufficient for Q readout)
-- Rational kernel sums (algebraically compatible with Poirier C-coordinates)
-- Cheaper per-pair evaluation (no exp() call)
+### 9.2 Probe Choice
 
-The Gaussian kernel remains available as a baseline and for comparison with previous results.
+Gauss–Jacobi probes with n = 4 are recommended in combination with the compact kernel.  They
+provide bounded displacement and structural consistency with the (1 − u²)^n kernel family.  The
+bounded support prevents probes from reaching into the exponential tail where ψ-KDE estimates are
+noisy.
 
-### 8.2 Probe Choice
+### 9.3 Probe Scaling
 
-The Gauss–Jacobi probe with n = 4 is recommended for states with small spatial extent or large
-current velocity, where the unbounded GH probe displacement is problematic.  The recommendation
-is provisional pending full dynamic comparisons; GH may remain preferable for broad states where
-the probe displacement is small relative to the wavefunction width.
+**Nelson scaling (σ_gh = √(ℏ dt/m)) is required for correct dynamics.**  The fixed-σ_gh approach
+produces trajectories with excessive noise that diverges as dt → 0.  Nelson scaling restores the
+correct √dt stochastic displacement, and the WEIGH readout is not degraded because the
+signal-to-noise cancellation is σ_gh-independent (§5.3).
 
-### 8.3 Open Questions
+The recommended configuration for new simulations is:
 
-1. **Dynamic energy conservation:** Static kernel comparisons (kernel_compare.py) show large
-   improvements for the compact kernel.  Do these translate to proportional improvements in the
-   full dynamic simulation over many time steps?
+    m5_simulate(..., kernel='compact', probe='jacobi', sigma_gh='nelson')
 
-2. **Bandwidth debiasing:** The gradient correction T_osm^F → T_osm (removing the O(h²) bias)
+or equivalently:
+
+    python m5_compare.py --kernel compact --probe jacobi --sigma-gh nelson
+
+### 9.4 Open Questions
+
+1. **Bandwidth debiasing:** The gradient correction T_osm^F → T_osm (removing the O(h²) bias)
    developed in the Fisher-form energy analysis may interact differently with the compact kernel.
    The smaller μ₂ reduces the uncorrected bias, but the correction itself may converge differently.
 
-3. **Optimal n:** The exponent n = 4 was chosen for C⁶ smoothness.  n = 3 (C⁴, like the quintic
-   B-spline) has an even smaller μ₂ at the same R, but less smoothness.  n = 5 or 6 would give
-   more smoothness at the cost of larger μ₂.  Systematic comparison across n values is warranted.
+2. **Optimal n:** The exponent n = 4 was chosen for C⁶ smoothness.  n = 3 (C⁴, like the quintic
+   B-spline) has an even smaller μ₂ at the same R, but less smoothness.  Systematic comparison
+   across n values is warranted.
 
-4. **Decoupled scales:** Using σ_steer ≠ σ_weigh to optimise trajectory smoothness and Q accuracy
-   independently.  This doubles the cost of the candidate evaluation but may be worthwhile.
+3. **Eckart barrier tunneling:** At 152% energy drift, the tunneling case remains the weakest.
+   The wavepacket splitting and node formation stress the ψ-KDE; adaptive bandwidth or increased
+   Np may be needed.
+
+4. **dt convergence study:** Running the same test case at decreasing dt with Nelson scaling
+   should show systematic convergence — verifying that the algorithm now has correct dt → 0
+   behaviour.
 
 ---
 
