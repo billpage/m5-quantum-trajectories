@@ -396,6 +396,7 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
                 h_kde=0.25,           # kernel bandwidth (physical)
                 kernel='gaussian',    # 'gaussian' | 'compact'
                 probe='hermite',      # 'hermite' | 'jacobi'
+                steer='stochastic',   # 'stochastic' | 'bohmian' | 'nelson'
                 # ── Backend ──────────────────────────────────────
                 backend=None,         # 'cpu' | 'gpu' | None (auto)
                 chunk_size=2048):     # max rows in kernel matrices
@@ -507,13 +508,14 @@ def m5_simulate(ensemble, V_func, T, Nt, *,
                 print(f"    Nelson-scaled σ_gh = √(ℏ dt/m) = {sigma_gh:.6f}",
                       flush=True)
         params.update(K_gh=K_gh, sigma_gh=sigma_gh, h_kde=h_kde,
-                      chunk_size=chunk_size, kernel=kernel, probe=probe)
+                      chunk_size=chunk_size, kernel=kernel, probe=probe,
+                      steer=steer)
         return _gridless_sim(
             X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
             V_func, dt, Nt,
             hbar=hbar, mass=mass, Np=Np, xL=xL, xR=xR,
             K_gh=K_gh, sigma_gh=sigma_gh, h_kde=h_kde,
-            kernel=kernel, probe=probe,
+            kernel=kernel, probe=probe, steer=steer,
             save_every=save_every, seed=seed,
             track_ids=track_ids, verbose=verbose,
             xp=xp, chunk_size=chunk_size, params=params)
@@ -673,7 +675,7 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
                   V_func, dt, Nt, *,
                   hbar, mass, Np, xL, xR,
                   K_gh, sigma_gh, h_kde,
-                  kernel, probe,
+                  kernel, probe, steer,
                   save_every, seed, track_ids, verbose,
                   xp, chunk_size, params):
     """
@@ -683,17 +685,24 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
     interpolated to particle positions.  Otherwise, V_func(X) is
     evaluated directly each step.
 
-    Parameters kernel and probe control the ψ-KDE kernel shape and
-    the STEER/WEIGH probe distribution respectively:
+    Parameters kernel, probe, and steer control the ψ-KDE kernel shape,
+    the STEER/WEIGH probe distribution, and the position-update rule:
         kernel='gaussian'  — standard Gaussian KDE (default)
         kernel='compact'   — compact rational (1−(Δ/R)²)⁴
         probe='hermite'    — Gauss–Hermite probes (default)
         probe='jacobi'     — Gauss–Jacobi probes (bounded support)
+        steer='stochastic' — √ρ-weighted random selection (default)
+        steer='bohmian'    — deterministic X += (v+u)dt
+        steer='nelson'     — deterministic drift + Nelson diffusion noise
     """
     nu = hbar / (2.0 * mass)
     h = h_kde
     rng = np.random.default_rng(seed)
     use_grid_V = x_grid_dev is not None
+
+    if steer not in ('stochastic', 'bohmian', 'nelson'):
+        raise ValueError(f"Unknown steer mode '{steer}'; "
+                         f"use 'stochastic', 'bohmian', or 'nelson'.")
 
     # ── Probe setup ──────────────────────────────────────────────────
     prb = make_probe(K_gh, sigma_gh, probe_type=probe)
@@ -703,6 +712,14 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
 
     offsets_dev = xp.asarray(offsets_cpu, dtype=xp.float64)
     omega = xp.asarray(omega_cpu, dtype=xp.float64)
+    nodes_dev = xp.asarray(prb['nodes'], dtype=xp.float64)
+
+    # Odd-moment scale factor: u = ν · scale · Σ ω_k ξ_k ln ρ(x_k)
+    if probe == 'hermite':
+        odd_scale = nu * 2.0**0.5 / sigma_gh   # ν√2/σ
+    else:  # jacobi
+        R_probe = sigma_gh * (2 * 4 + 3) ** 0.5  # n_pow=4
+        odd_scale = nu * R_probe / mu2            # ν R/σ²
 
     X = xp.asarray(X_cpu, dtype=xp.float64)
     S = xp.asarray(S_cpu, dtype=xp.float64)
@@ -761,31 +778,64 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
         sqr_depart = f_all['sqrt_rho'][Np * K_gh:]
         lnr_depart = f_all['ln_rho'][Np * K_gh:]
 
-        # ══════════════ STEP 5: STEER (selection) ═════════════════════
-        w_sel = omega[None, :] * xp.maximum(sqr_cands, 1e-30)
-        w_sum = w_sel.sum(axis=1, keepdims=True)
-        probs = w_sel / xp.maximum(w_sum, 1e-30)
+        # ══════════════ STEP 5: ODD/EVEN MOMENT READOUTS ════════════════
+        # Guard ln ρ: clamp probe values to prevent compact-kernel
+        # edge effects where probes fall outside all kernel supports.
+        LNR_GUARD = 20.0  # max |ln ρ(probe) − ln ρ(departure)|
+        lnr_clamped = xp.clip(lnr_cands,
+                              lnr_depart[:, None] - LNR_GUARD,
+                              lnr_depart[:, None] + LNR_GUARD)
 
-        cum = xp.cumsum(probs, axis=1)
-        u_rand = xp.asarray(rng.uniform(size=Np), dtype=xp.float64)
-        chosen = xp.clip(
-            (cum < u_rand[:, None]).sum(axis=1).astype(xp.int64),
-            0, K_gh - 1)
+        # Even-moment readout → u' = ν (ln ρ)''  (osmotic divergence)
+        L_k = (omega[None, :] * lnr_clamped).sum(axis=1)
+        u_prime = nu * 2.0 * (L_k - lnr_depart) / mu2
 
-        idx_row = xp.arange(Np)
-        X = cands[idx_row, chosen]
+        # Odd-moment readout → u = ν (ln ρ)'  (osmotic velocity)
+        odd_sum = (omega[None, :] * nodes_dev[None, :] *
+                   lnr_clamped).sum(axis=1)
+        u_osm = odd_scale * odd_sum
 
-        # ══════════════ STEP 6: FORWARD WEIGH (Q) ════════════════════
-        M_plus = (omega[None, :] * sqr_cands).sum(axis=1)
-        ratio = M_plus / xp.maximum(sqr_depart, 1e-30)
-        Q_at = -(hbar**2 / (mass * mu2)) * (ratio - 1.0)
+        # ══════════════ STEP 6: STEER (position update) ══════════════
+        if steer == 'stochastic':
+            # √ρ-weighted random selection from probe cloud
+            w_sel = omega[None, :] * xp.maximum(sqr_cands, 1e-30)
+            w_sum = w_sel.sum(axis=1, keepdims=True)
+            probs = w_sel / xp.maximum(w_sum, 1e-30)
+
+            cum = xp.cumsum(probs, axis=1)
+            u_rand = xp.asarray(rng.uniform(size=Np), dtype=xp.float64)
+            chosen = xp.clip(
+                (cum < u_rand[:, None]).sum(axis=1).astype(xp.int64),
+                0, K_gh - 1)
+
+            idx_row = xp.arange(Np)
+            X = cands[idx_row, chosen]
+
+        elif steer == 'bohmian':
+            # Deterministic de Broglie–Bohm guidance: X += (v + u) dt
+            X = X_class + u_osm * dt
+            X = xp.clip(X, xL + h, xR - h)
+
+        else:  # nelson
+            # Deterministic drift + explicit Nelson diffusion noise
+            noise = xp.asarray(rng.standard_normal(Np), dtype=xp.float64)
+            X = X_class + u_osm * dt + (2.0 * nu * dt)**0.5 * noise
+            X = xp.clip(X, xL + h, xR - h)
+
+        # ══════════════ STEP 7: QUANTUM POTENTIAL Q ══════════════════
+        if steer == 'stochastic':
+            # Forward WEIGH: Q from √ρ mean-weight ratio (original)
+            M_plus = (omega[None, :] * sqr_cands).sum(axis=1)
+            ratio = M_plus / xp.maximum(sqr_depart, 1e-30)
+            Q_at = -(hbar**2 / (mass * mu2)) * (ratio - 1.0)
+        else:
+            # Holland identity: Q = −½mu² − ½ℏu'
+            Q_at = -0.5 * mass * u_osm**2 - 0.5 * hbar * u_prime
 
         Q_med = xp.median(xp.abs(Q_at))
         Q_at = xp.clip(Q_at, -50.0 * Q_med - 1.0, 50.0 * Q_med + 1.0)
 
-        # ══════════════ STEP 7: BACKWARD CHANNEL ═════════════════════
-        L_k = (omega[None, :] * lnr_cands).sum(axis=1)
-        u_prime = nu * 2.0 * (L_k - lnr_depart) / mu2
+        # Backward channel: Q̃ = Q + ℏu' (diagnostic)
         Q_tilde = Q_at + hbar * u_prime
 
         # ══════════════ STEP 8: PHASE UPDATE ══════════════════════════

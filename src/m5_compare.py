@@ -548,7 +548,7 @@ def build_figure(case, psi_ref, ts_ref, x_grid,
 # Run one test case
 # ═══════════════════════════════════════════════════════════════════════
 
-def run_case(case, force_backend=None):
+def run_case(case, force_backend=None, chunk_size=2048):
     """Run FFT reference + grid + gridless for one test case.
 
     Returns (psi_ref, ts_ref, res_grid, res_gridless, E_grid, E_gridless,
@@ -605,16 +605,18 @@ def run_case(case, force_backend=None):
         sigma_kde=gp['sigma_kde'], K_cand=gp['K_cand'],
         sigma_Q_smooth=gp['sigma_Q_smooth'],
         save_every=save_every, seed=42,
-        track_ids=track_ids, backend=force_backend)
+        track_ids=track_ids, backend=force_backend,
+        chunk_size=chunk_size)
     print(f"    done ({res_grid['wall_time']:.1f}s)")
 
     # ── Gridless mode ────────────────────────────────────────────────
     glp = case['gridless_params']
     gl_kernel = glp.get('kernel', 'gaussian')
     gl_probe = glp.get('probe', 'hermite')
+    gl_steer = glp.get('steer', 'stochastic')
     print(f"    Gridless mode (K_gh={glp['K_gh']}, σ_gh={glp['sigma_gh']}, "
           f"h_kde={glp['h_kde']}, kernel={gl_kernel}, "
-          f"probe={gl_probe})...", flush=True)
+          f"probe={gl_probe}, steer={gl_steer})...", flush=True)
     t0 = time.time()
     res_gridless = m5_simulate(
         ens, V_func, T, Nt,
@@ -622,8 +624,10 @@ def run_case(case, force_backend=None):
         K_gh=glp['K_gh'], sigma_gh=glp['sigma_gh'],
         h_kde=glp['h_kde'],
         kernel=gl_kernel, probe=gl_probe,
+        steer=gl_steer,
         save_every=save_every, seed=42,
-        track_ids=track_ids, backend=force_backend)
+        track_ids=track_ids, backend=force_backend,
+        chunk_size=chunk_size)
     print(f"    done ({res_gridless['wall_time']:.1f}s)")
 
     # ── Energy diagnostics ───────────────────────────────────────────
@@ -687,6 +691,14 @@ def main():
     parser.add_argument('--probe', type=str, default=None,
                         choices=['hermite', 'jacobi'],
                         help='Gridless probe type: hermite (default) or jacobi')
+    parser.add_argument('--steer', type=str, default=None,
+                        choices=['stochastic', 'bohmian', 'nelson'],
+                        help='Gridless steer mode: stochastic (default), '
+                             'bohmian (deterministic guidance), or '
+                             'nelson (deterministic drift + diffusion noise)')
+    parser.add_argument('--chunk-size', type=int, default=2048,
+                        help='Max rows per kernel-matrix batch on GPU '
+                             '(default 2048)')
     args = parser.parse_args()
 
     force = 'cpu' if args.cpu else ('gpu' if args.gpu else None)
@@ -743,6 +755,8 @@ def main():
             c['gridless_params']['kernel'] = args.kernel
         if args.probe is not None:
             c['gridless_params']['probe'] = args.probe
+        if args.steer is not None:
+            c['gridless_params']['steer'] = args.steer
 
     all_results = {}
 
@@ -757,7 +771,8 @@ def main():
         (psi_ref, ts_ref, x_grid,
          res_grid, res_gridless,
          E_grid, E_gridless,
-         errs_grid, errs_gridless) = run_case(case, force_backend=force)
+         errs_grid, errs_gridless) = run_case(case, force_backend=force,
+                                               chunk_size=args.chunk_size)
 
         # Build and save figure
         print(f"    Plotting...", end=" ", flush=True)
