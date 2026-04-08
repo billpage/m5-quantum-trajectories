@@ -761,11 +761,22 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
         X_class = xp.clip(X_class, xL + h, xR - h)
 
         # ══════════════ STEP 3: PROBE CANDIDATE CLOUD ════════════════
-        cands = X_class[:, None] + offsets_dev[None, :]
+        # Stochastic: probes around X_class (advected position) for
+        #   √ρ-weighted selection that bundles advection + osmotic drift.
+        # Bohmian/Nelson: probes around X (current position) for an
+        #   unsplit Euler step X_new = X + (v + u)dt.  Using X_class
+        #   would create a systematic backward bias because the KDE
+        #   source particles are still at X.
+        if steer == 'stochastic':
+            probe_center = X_class
+        else:
+            probe_center = X
+
+        cands = probe_center[:, None] + offsets_dev[None, :]
         cands = xp.clip(cands, xL + h, xR - h)
         cands_flat = cands.reshape(-1)
 
-        all_eval = xp.concatenate([cands_flat, X_class])
+        all_eval = xp.concatenate([cands_flat, probe_center])
 
         # ══════════════ STEP 4: ψ-KDE AT ALL POINTS ══════════════════
         ks_all = kernel_sums(all_eval, X, phi, h, xp,
@@ -812,14 +823,14 @@ def _gridless_sim(X_cpu, S_cpu, x_grid_dev, dx, Nx, V_grid_dev,
             X = cands[idx_row, chosen]
 
         elif steer == 'bohmian':
-            # Deterministic de Broglie–Bohm guidance: X += (v + u) dt
-            X = X_class + u_osm * dt
+            # Unsplit de Broglie–Bohm: X += (v + u) dt
+            X = X + (v_at + u_osm) * dt
             X = xp.clip(X, xL + h, xR - h)
 
         else:  # nelson
-            # Deterministic drift + explicit Nelson diffusion noise
+            # Unsplit Nelson drift + diffusion noise
             noise = xp.asarray(rng.standard_normal(Np), dtype=xp.float64)
-            X = X_class + u_osm * dt + (2.0 * nu * dt)**0.5 * noise
+            X = X + (v_at + u_osm) * dt + (2.0 * nu * dt)**0.5 * noise
             X = xp.clip(X, xL + h, xR - h)
 
         # ══════════════ STEP 7: QUANTUM POTENTIAL Q ══════════════════
