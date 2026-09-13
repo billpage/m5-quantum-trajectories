@@ -708,7 +708,6 @@ The coherent averaging naturally produces interference, nodes, and phase quantis
 - `NelsonMechanics_SchrodingerBridge_Supplement.md` — Contextual analysis: Hackebill–Poirier, Wasserstein dynamics, bridge interpretation
 - `NelsonMechanics_SchrodingerBridge_Algorithm.md` §7.2 step 1b — grid-based ψ-KDE implementation (CIC + Gaussian convolution)
 - `Method5_QA_Discussion.md` — Time symmetry, local Sinkhorn, Fisher information
-- `project_summary.md` — te Vrugt et al. active matter analysis
 - `complex_trajectories_analysis.md` — Yang & Han complex trajectory connection
 - `kernel_expressions.md` — Explicit kernel sum expressions, K''/K structure, Poirier connection
 - `kernel_probe_theory.md` — Compact rational kernel and Gauss–Jacobi probe theory, energy conservation analysis

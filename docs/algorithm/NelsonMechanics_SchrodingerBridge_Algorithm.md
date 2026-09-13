@@ -423,7 +423,7 @@ INPUT: Ensemble {X_k, S_k}, k = 1,...,Np
 
 ### 7.3 What Changed From the Original v2 and v3
 
-This document supersedes both the original v2 (`Method5_Mathematical_Analysis_v2.md`) and v3 (`Method5_Mathematical_Analysis_v3.md`). The original v2 established the dual-readout framework with random candidates. v3 added the log-density backward channel and mirror particles, but retained random candidates in its pseudocode. This updated v2 consolidates all advances and upgrades to deterministic GH quadrature.
+This document supersedes both the original v2 (`Method5_Mathematical_Analysis_v2.md`) and v3 (now `Method5_Mathematical_Analysis_v3.md` + `Method5_v3_second_half.md`, merged into `docs/analysis/Method5_v3_Analysis.md`). The original v2 established the dual-readout framework with random candidates. v3 added the log-density backward channel and mirror particles, but retained random candidates in its pseudocode. This updated v2 consolidates all advances and upgrades to deterministic GH quadrature.
 
 | Aspect | Original v2 / v3 | Updated v2 (this document) |
 |---|---|---|
@@ -728,8 +728,7 @@ Stein's characterising identity E[f′(Z) − Zf(Z)] = 0 for Gaussian Z encodes 
 - `NelsonMechanics_SchrodingerBridge_Supplement.md` — **Companion supplement** (§§17–25): Hackebill–Poirier classification, Method 7 lessons, Wasserstein dynamics, bridge interpretation, open questions
 - `Method5_Mathematical_Analysis.md` — Original v1 theory: √ρ-selection theorem proof, free Gaussian test (historical, not in repository; superseded)
 - `Method5_Mathematical_Analysis_v2.md` — Original v2: dual-readout theory, random candidate formulation (historical, not in repository; superseded)
-- `Method5_Mathematical_Analysis_v3.md` — v3 first half: log-density, mirror particles, GH implementation (superseded)
-- `Method5_v3_second_half.md` — v3 second half: bridge/Wasserstein/classification (superseded by supplement)
+- `Method5_v3_Analysis.md` — v3 dual-weight analysis: log-density, mirror particles, GH implementation, bridge/Wasserstein/classification (historical; superseded by this document, see its own status note)
 - `NelsonMechanics_SchrodingerBridge_Swarmalator.md` §§2–3 — ψ-KDE density estimator theory
 - `Holland_Nelson_FokkerPlanck_Analysis.md` — Comparative analysis of Holland and Nelson frameworks
 - `FBSDE_SchrodingerBridge_Nelson_Holland.md` — Triangular FBSDE/bridge/bi-HJ relationship
