@@ -41,7 +41,7 @@ The key insight is that **√ρ is the geometric mean of the forward and backwar
 
 A pure forward solver would weight candidates by ρ. A pure backward solver would also use ρ (same marginal density). But their drifts differ — forward needs +u, backward needs −u. Method 5 uses √ρ, which induces exactly *half* the log-density gradient:
 
-$$\sigma^2 \cdot \partial_x \ln \sqrt{\rho} = \sigma^2 \cdot \tfrac{1}{2}\partial_x \ln \rho = \nu \,\partial_x \ln \rho = u$$
+$$\sigma^2 \cdot \partial_x \ln \sqrt{\rho} = \sigma^2 \cdot \tfrac{1}{2}\partial_x \ln \rho = \nu \thinspace{}\partial_x \ln \rho = u$$
 
 This is precisely the osmotic component — the part that is symmetric under time reversal. The current velocity $v$ (which reverses under T) is handled explicitly in the classical step.
 
@@ -53,7 +53,7 @@ Method 5 thus naturally separates:
 
 In the Schrödinger bridge framework, the action functional is:
 
-$$A[\rho, v] = \int_0^T\!\int \left[\tfrac{1}{2}|v|^2\rho + \tfrac{\varepsilon^2}{8}|\nabla\ln\rho|^2\rho\right] dx\,dt$$
+$$A[\rho, v] = \int_0^T\negthinspace{}\int \left[\tfrac{1}{2}|v|^2\rho + \tfrac{\varepsilon^2}{8}|\nabla\ln\rho|^2\rho\right] dx\thinspace{}dt$$
 
 The second term is the **Fisher information** of ρ — the term that distinguishes the Schrödinger bridge from classical optimal transport (Benamou–Brenier). Method 5's √ρ selection **locally minimises the Fisher information cost**: by biasing candidates toward higher √ρ, the algorithm implements a local version of the Sinkhorn/IPFP reweighting at every time step.
 
@@ -198,28 +198,28 @@ In the Wasserstein picture:
 
 | Ordinary Mechanics | Wasserstein Mechanics |
 |---|---|
-| Position $q$ | Density $\rho(x) \in \mathcal{W}_2$ |
+| Position $q$ | Density $`\rho(x) \in \mathcal{W}_2`$ |
 | Velocity $\dot{q}$ | Velocity field $v(x,t)$ transporting $\rho$ via $\partial_t\rho + \nabla\cdot(\rho v) = 0$ |
 | Momentum $m\dot{q}$ | Momentum field $\rho v$ |
-| Kinetic energy $\tfrac{1}{2}m|\dot{q}|^2$ | $T = \tfrac{1}{2}\int |v(x)|^2 \rho(x)\,dx$ (Benamou–Brenier) |
+| Kinetic energy $\tfrac{1}{2}m|\dot{q}|^2$ | $T = \tfrac{1}{2}\int |v(x)|^2 \rho(x)\thinspace{}dx$ (Benamou–Brenier) |
 | Distance $|q_1 - q_2|$ | Wasserstein distance $W_2(\rho_0, \rho_1)$ = optimal transport cost |
-| Mass $m$ | Distributed inertia: each element $\rho(x)\,dx$ contributes its share |
+| Mass $m$ | Distributed inertia: each element $\rho(x)\thinspace{}dx$ contributes its share |
 
-The Wasserstein metric makes $\mathcal{W}_2$ a Riemannian manifold. The "distance" between two densities is the minimum work to rearrange one into the other. The density-particle doesn't just have a position in this space; it has **genuine momentum** $\rho v$ with dynamical content.
+The Wasserstein metric makes $`\mathcal{W}_2`$ a Riemannian manifold. The "distance" between two densities is the minimum work to rearrange one into the other. The density-particle doesn't just have a position in this space; it has **genuine momentum** $\rho v$ with dynamical content.
 
 ### Newton's Law on Wasserstein Space
 
 The Conforti–Pavon (2017) result, described in `FBSDE_SchrodingerBridge_Nelson_Holland.md`, §3.4, shows that all three problems — optimal transport, Schrödinger bridges, and quantum mechanics — satisfy a **Newton-like second law** on Wasserstein space:
 
-$$\nabla_t(\rho v) = -\rho\,\nabla\!\left(\frac{\delta F}{\delta\rho}\right)$$
+$$\nabla_t(\rho v) = -\rho\thinspace{}\nabla\negthinspace{}\left(\frac{\delta F}{\delta\rho}\right)$$
 
-where $\nabla_t$ is the covariant derivative along the curve in $\mathcal{W}_2$, and $F[\rho]$ is a functional that depends on which problem is being solved:
+where $\nabla_t$ is the covariant derivative along the curve in $`\mathcal{W}_2`$, and $F[\rho]$ is a functional that depends on which problem is being solved:
 
 | Problem | Action Functional | Physical Interpretation |
 |---|---|---|
-| **Optimal Mass Transport** | $\int\!\int \tfrac{1}{2}|v|^2\rho\,dx\,dt$ | Free motion, no internal structure |
-| **Schrödinger Bridge** | $\int\!\int \left[\tfrac{1}{2}|v|^2 + \tfrac{\varepsilon^2}{8}|\nabla\ln\rho|^2\right]\rho\,dx\,dt$ | Internal pressure from Fisher information (+) |
-| **Quantum Mechanics (Madelung/Nelson)** | $\int\!\int \left[\tfrac{1}{2}|v|^2 - \tfrac{\nu^2}{2}|\nabla\ln\rho|^2 - V\right]\rho\,dx\,dt$ | Negative Fisher information = quantum potential |
+| **Optimal Mass Transport** | $\int\negthinspace{}\int \tfrac{1}{2}|v|^2\rho\thinspace{}dx\thinspace{}dt$ | Free motion, no internal structure |
+| **Schrödinger Bridge** | $\int\negthinspace{}\int \left[\tfrac{1}{2}|v|^2 + \tfrac{\varepsilon^2}{8}|\nabla\ln\rho|^2\right]\rho\thinspace{}dx\thinspace{}dt$ | Internal pressure from Fisher information (+) |
+| **Quantum Mechanics (Madelung/Nelson)** | $\int\negthinspace{}\int \left[\tfrac{1}{2}|v|^2 - \tfrac{\nu^2}{2}|\nabla\ln\rho|^2 - V\right]\rho\thinspace{}dx\thinspace{}dt$ | Negative Fisher information = quantum potential |
 
 The sign of the Fisher information term is the crucial structural distinction:
 
@@ -234,16 +234,16 @@ Think of ρ as an elastic membrane over the x-axis:
 - **Schrödinger bridge:** The membrane has **surface tension**. Deformations cost energy proportional to curvature. Sharp features are suppressed.
 - **Quantum mechanics:** The membrane has **negative surface tension**. Sharp features are energetically favourable. Interference fringes spontaneously emerge when wave packets collide.
 
-In all three cases, the membrane has genuine inertia ($\tfrac{1}{2}\int|v|^2\rho\,dx$) and genuine internal forces (from $\delta F/\delta\rho$).
+In all three cases, the membrane has genuine inertia ($\tfrac{1}{2}\int|v|^2\rho\thinspace{}dx$) and genuine internal forces (from $\delta F/\delta\rho$).
 
 ### Connecting to the √ρ Selection
 
-The Fisher information $\int|\nabla\ln\rho|^2\rho\,dx$ can be rewritten as $4\int|\nabla\sqrt{\rho}|^2\,dx$ — the **Dirichlet energy of √ρ**. This is why √ρ is the natural object. The internal energy of the density-particle in Wasserstein space is the integral of the squared gradient of √ρ.
+The Fisher information $\int|\nabla\ln\rho|^2\rho\thinspace{}dx$ can be rewritten as $4\int|\nabla\sqrt{\rho}|^2\thinspace{}dx$ — the **Dirichlet energy of √ρ**. This is why √ρ is the natural object. The internal energy of the density-particle in Wasserstein space is the integral of the squared gradient of √ρ.
 
 When Method 5 weights candidates by √ρ, it is directly coupling the particle dynamics to the gradient structure of √ρ — the degree of freedom that carries the internal energy. Each time step of Method 5 implements a single step of Wasserstein Newton's law:
 
 1. The **classical push** ($v \cdot dt$) advances the density-particle along its current Wasserstein momentum.
-2. The **√ρ-weighted selection** applies the internal force — the functional derivative of the Fisher information — correcting the momentum so the density-particle follows the correct quantum trajectory in $\mathcal{W}_2$ rather than the free-transport (classical) trajectory.
+2. The **√ρ-weighted selection** applies the internal force — the functional derivative of the Fisher information — correcting the momentum so the density-particle follows the correct quantum trajectory in $`\mathcal{W}_2`$ rather than the free-transport (classical) trajectory.
 
 ### The "Resistance" Is Real
 

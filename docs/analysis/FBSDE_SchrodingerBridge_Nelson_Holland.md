@@ -11,10 +11,10 @@
 A forward-backward stochastic differential equation (FBSDE) couples an ordinary forward ItÃ´ SDE with a *backward* SDE (BSDE) that runs from a terminal condition back in time. The general structure, formalized by Pardoux & Peng (1990) and Ma, Protter & Yong (1994), is:
 
 **Forward SDE:**
-$$dX_t = \mu(t, X_t, Y_t)\,dt + \sigma(t, X_t, Y_t)\,dW_t, \qquad X_0 = x_0$$
+$$dX_t = \mu(t, X_t, Y_t)\thinspace{}dt + \sigma(t, X_t, Y_t)\thinspace{}dW_t, \qquad X_0 = x_0$$
 
 **Backward SDE:**
-$$dY_t = -f(t, X_t, Y_t, Z_t)\,dt + Z_t\,dW_t, \qquad Y_T = g(X_T)$$
+$$dY_t = -f(t, X_t, Y_t, Z_t)\thinspace{}dt + Z_t\thinspace{}dW_t, \qquad Y_T = g(X_T)$$
 
 The forward process $X_t$ evolves from an initial condition into the future; the backward process $(Y_t, Z_t)$ is determined by a *terminal* condition $g(X_T)$ and propagates information backward. The auxiliary process $Z_t$ arises from the martingale representation theorem â€” it encodes how $Y_t$ responds to the noise driving $X_t$.
 
@@ -40,7 +40,7 @@ In **mathematical finance**, the FBSDE framework provides the natural language f
 - **Recursive utility and stochastic differential utility:** The cost/utility is defined implicitly through the BSDE, generalizing classical dynamic programming.
 - **Mean-field games:** When agents interact through the population distribution, the resulting McKeanâ€“Vlasov FBSDEs couple forward (Fokkerâ€“Planck for the population density) with backward (HJB for individual optimality).
 
-In **stochastic optimal control**, the FBSDE encodes the Pontryagin stochastic maximum principle. For a controlled diffusion $dX_t = b(X_t, u_t)\,dt + \sigma\,dW_t$ minimizing $\mathbb{E}[\int_0^T L(X_t, u_t)\,dt + g(X_T)]$, the optimality conditions yield:
+In **stochastic optimal control**, the FBSDE encodes the Pontryagin stochastic maximum principle. For a controlled diffusion $dX_t = b(X_t, u_t)\thinspace{}dt + \sigma\thinspace{}dW_t$ minimizing $\mathbb{E}[\int_0^T L(X_t, u_t)\thinspace{}dt + g(X_T)]$, the optimality conditions yield:
 
 - **Forward:** Fokkerâ€“Planck equation for the state density $\rho$
 - **Backward:** Hamiltonâ€“Jacobiâ€“Bellman equation for the value function $\varphi$
@@ -68,12 +68,12 @@ SchrÃ¶dinger himself noted (in the paper's title, "Ãœber die Umkehrung der N
 
 If the prior $P$ is Markovian (e.g., Brownian motion with diffusion $\nu = \varepsilon/2$), the SchrÃ¶dinger bridge $Q^*$ is also Markovian (Jamison, 1974) and has a special structure. Its transition density factorizes as:
 
-$$q^*(x, t \,|\, y, 0) = \hat{\varphi}(x,t) \cdot p(x,t\,|\,y,0) \cdot \varphi(y,0)$$
+$$q^*(x, t \thinspace{}|\thinspace{} y, 0) = \hat{\varphi}(x,t) \cdot p(x,t\thinspace{}|\thinspace{}y,0) \cdot \varphi(y,0)$$
 
 where $p$ is the prior transition kernel and $(\varphi, \hat{\varphi})$ are **SchrÃ¶dinger potentials** satisfying the coupled integral equations (the **SchrÃ¶dinger system**):
 
-$$\hat{\varphi}(x,1) \int p(x,1\,|\,y,0)\,\varphi(y,0)\,\rho_0(y)\,dy = \rho_1(x)$$
-$$\varphi(y,0) \int p(x,1\,|\,y,0)\,\hat{\varphi}(x,1)\,\rho_1(x)\,dx = \rho_0(y)$$
+$$\hat{\varphi}(x,1) \int p(x,1\thinspace{}|\thinspace{}y,0)\thinspace{}\varphi(y,0)\thinspace{}\rho_0(y)\thinspace{}dy = \rho_1(x)$$
+$$\varphi(y,0) \int p(x,1\thinspace{}|\thinspace{}y,0)\thinspace{}\hat{\varphi}(x,1)\thinspace{}\rho_1(x)\thinspace{}dx = \rho_0(y)$$
 
 These can be solved iteratively (the **Sinkhorn algorithm** or iterative proportional fitting procedure, IPFP), which alternately normalizes rows and columns â€” a procedure that converges to the unique bridge under mild conditions (Fortet 1940, Beurling 1960, FÃ¶llmer 1988).
 
@@ -81,7 +81,7 @@ These can be solved iteratively (the **Sinkhorn algorithm** or iterative proport
 
 The pivotal modern development, recognized since the early 1990s by Zambrini (1986), Dai Pra (1991), and Pavon & Wakolbinger (1991), is that the SchrÃ¶dinger bridge can be reformulated as a **stochastic optimal control problem**. When the prior is Wiener measure with diffusion $\varepsilon$, the bridge marginal flow solves:
 
-$$\inf_{(\rho, v)} \int_0^1 \int_{\mathbb{R}^d} \left[\frac{1}{2}|v_t(x)|^2 + \frac{\varepsilon^2}{8}|\nabla\ln\rho_t(x)|^2\right]\rho_t(x)\,dx\,dt$$
+$$\inf_{(\rho, v)} \int_0^1 \int_{\mathbb{R}^d} \left[\frac{1}{2}|v_t(x)|^2 + \frac{\varepsilon^2}{8}|\nabla\ln\rho_t(x)|^2\right]\rho_t(x)\thinspace{}dx\thinspace{}dt$$
 
 subject to the **continuity equation** $\partial_t\rho + \nabla\cdot(v\rho) = 0$ and boundary conditions $\rho(0) = \rho_0$, $\rho(1) = \rho_1$.
 
@@ -92,20 +92,20 @@ The first term $\frac{1}{2}|v|^2\rho$ is kinetic energy â€” identical to th
 The optimality conditions for the SchrÃ¶dinger bridge control problem yield a coupled FBSDE system. Defining $\varphi = \ln\hat{\varphi}$ and $\hat{\varphi} = \ln\varphi$ as log-potentials, the optimal evolution satisfies:
 
 **Forward Fokkerâ€“Planck:**
-$$\partial_t\rho + \nabla\cdot(\rho\,b) = \nu\,\nabla^2\rho, \qquad b = v + \nu\nabla\ln\rho$$
+$$\partial_t\rho + \nabla\cdot(\rho\thinspace{}b) = \nu\thinspace{}\nabla^2\rho, \qquad b = v + \nu\nabla\ln\rho$$
 
 **Backward HJB (for the value function $\varphi$):**
-$$\partial_t\varphi + \frac{1}{2}|\nabla\varphi|^2 + \nu\,\nabla^2\varphi = 0$$
+$$\partial_t\varphi + \frac{1}{2}|\nabla\varphi|^2 + \nu\thinspace{}\nabla^2\varphi = 0$$
 
 **Forward HJB (for $\hat{\varphi}$):**
-$$\partial_t\hat{\varphi} + \frac{1}{2}|\nabla\hat{\varphi}|^2 - \nu\,\nabla^2\hat{\varphi} = 0$$
+$$\partial_t\hat{\varphi} + \frac{1}{2}|\nabla\hat{\varphi}|^2 - \nu\thinspace{}\nabla^2\hat{\varphi} = 0$$
 
 The density is $\rho = e^{\hat{\varphi} - \varphi}$ (up to normalization), and the optimal drifts are $b = \nabla\hat{\varphi}$ (forward) and $b_* = -\nabla\varphi$ (backward). This is a **forward-backward system**: the forward FPE propagates the density forward in time, while the backward HJB propagates the value function backward from the terminal condition.
 
 The stochastic version takes the form of the coupled SDEs:
 
-$$dX_t = \nabla\hat{\varphi}(X_t,t)\,dt + \sqrt{2\nu}\,dW_t \qquad\text{(forward)}$$
-$$dX_t = -\nabla\varphi(X_t,t)\,dt + \sqrt{2\nu}\,dW_t^* \qquad\text{(backward)}$$
+$$dX_t = \nabla\hat{\varphi}(X_t,t)\thinspace{}dt + \sqrt{2\nu}\thinspace{}dW_t \qquad\text{(forward)}$$
+$$dX_t = -\nabla\varphi(X_t,t)\thinspace{}dt + \sqrt{2\nu}\thinspace{}dW_t^* \qquad\text{(backward)}$$
 
 where $W^*$ is a backward Wiener process.
 
@@ -119,12 +119,12 @@ The structural parallel between the SchrÃ¶dinger bridge FBSDE and Nelson's sto
 
 In Nelson's stochastic mechanics (1966), a quantum particle follows:
 
-$$dx = b(x,t)\,dt + dw, \qquad \mathbb{E}_t[dw^i dw^j] = \frac{\hbar}{m}\delta^{ij}\,dt$$
+$$dx = b(x,t)\thinspace{}dt + dw, \qquad \mathbb{E}_t[dw^i dw^j] = \frac{\hbar}{m}\delta^{ij}\thinspace{}dt$$
 
 with forward drift $b = v + u$ and backward drift $b_* = v - u$, where $v = \nabla S/m$ is the current velocity and $u = (\hbar/2m)\nabla\ln\rho$ is the osmotic velocity. The density $\rho = |\psi|^2$ satisfies:
 
-- **Forward FPE:** $\partial_t\rho + \nabla\cdot(\rho\,b) = \nu\nabla^2\rho$
-- **Backward Kolmogorov:** $\partial_t\rho + \nabla\cdot(\rho\,b_*) = -\nu\nabla^2\rho$
+- **Forward FPE:** $\partial_t\rho + \nabla\cdot(\rho\thinspace{}b) = \nu\nabla^2\rho$
+- **Backward Kolmogorov:** $\partial_t\rho + \nabla\cdot(\rho\thinspace{}b_*) = -\nu\nabla^2\rho$
 
 with $\nu = \hbar/(2m)$.
 
@@ -168,13 +168,13 @@ The major synthesis came in a series of papers by Yongxin Chen, Tryphon Georgiou
 
 ### 3.4 Conforti & Pavon: Extremal Flows on Wasserstein Space
 
-The geometric unification was achieved in Conforti & Pavon (2017), "Extremal flows on Wasserstein space." They showed that the solution flows of OMT, SBP, and Nelson's stochastic mechanics can all be characterized as **critical points of action functionals on Wasserstein space** $\mathcal{W}_2$. The actions differ only in the presence or sign of a Fisher information functional:
+The geometric unification was achieved in Conforti & Pavon (2017), "Extremal flows on Wasserstein space." They showed that the solution flows of OMT, SBP, and Nelson's stochastic mechanics can all be characterized as **critical points of action functionals on Wasserstein space** $`\mathcal{W}_2`$. The actions differ only in the presence or sign of a Fisher information functional:
 
 | Problem | Action Functional |
 |---|---|
-| **Optimal Mass Transport** | $\int_0^1\int\frac{1}{2}|v|^2\rho\,dx\,dt$ |
-| **SchrÃ¶dinger Bridge** | $\int_0^1\int\left[\frac{1}{2}|v|^2 + \frac{\varepsilon^2}{8}|\nabla\ln\rho|^2\right]\rho\,dx\,dt$ |
-| **Nelson / Madelung** | $\int_0^1\int\left[\frac{1}{2}|v|^2 - \frac{\nu^2}{2}|\nabla\ln\rho|^2 - V\right]\rho\,dx\,dt$ |
+| **Optimal Mass Transport** | $\int_0^1\int\frac{1}{2}|v|^2\rho\thinspace{}dx\thinspace{}dt$ |
+| **SchrÃ¶dinger Bridge** | $\int_0^1\int\left[\frac{1}{2}|v|^2 + \frac{\varepsilon^2}{8}|\nabla\ln\rho|^2\right]\rho\thinspace{}dx\thinspace{}dt$ |
+| **Nelson / Madelung** | $\int_0^1\int\left[\frac{1}{2}|v|^2 - \frac{\nu^2}{2}|\nabla\ln\rho|^2 - V\right]\rho\thinspace{}dx\thinspace{}dt$ |
 
 The sign flip on the Fisher information term between SBP (+) and the Madelung fluid (âˆ’) is the key structural distinction. The SBP penalizes density gradients (entropy production), while the quantum action *rewards* them (through the quantum potential $Q$, which can be written as $Q = -\frac{\nu^2}{2}|\nabla\ln\rho|^2 - \nu^2\nabla^2\ln\sqrt{\rho}$).
 
@@ -195,7 +195,7 @@ $$\partial_t\sigma_- + \frac{1}{2m}(\nabla\sigma_-)^2 + Q_- + V = 0$$
 are the **Hamiltonâ€“Jacobiâ€“Bellman equations** of the forward and backward stochastic control problems associated with the SchrÃ¶dinger bridge. The functions $\sigma_+$ and $\sigma_-$ are value functions: $\sigma_+$ is the cost-to-go of the forward control problem, $\sigma_-$ the cost-to-go of the backward one.
 
 Holland's Fokkerâ€“Planck pair (Eq. 4.17):
-$$\partial_t\rho + \nabla\cdot(\rho\,v_\pm) = \pm\nu\nabla^2\rho$$
+$$\partial_t\rho + \nabla\cdot(\rho\thinspace{}v_\pm) = \pm\nu\nabla^2\rho$$
 
 is the **optimality system** â€” the forward FPE and backward Kolmogorov equation of the FBSDE. The source terms $\pm\nu\nabla^2\rho$ are not physical noise but the consequence of the control-theoretic decomposition: neither the forward nor the backward optimal drift individually conserves probability. Conservation is restored only through their combination (the continuity equation $\partial_t\rho + \nabla\cdot(\rho v) = 0$).
 

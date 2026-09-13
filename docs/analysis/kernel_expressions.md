@@ -21,11 +21,11 @@ All kernel sums run over source particles $j = 1, \ldots, N_p$.
 
 ### 1.1 Gaussian Kernel
 
-$$K_h^{\rm G}(\Delta) = \frac{1}{h\sqrt{2\pi}} \exp\!\left(-\frac{\Delta^2}{2h^2}\right)$$
+$$K_h^{\rm G}(\Delta) = \frac{1}{h\sqrt{2\pi}} \exp\negthinspace{}\left(-\frac{\Delta^2}{2h^2}\right)$$
 
 First derivative:
 
-$$K_h^{\rm G\prime}(\Delta) = -\frac{\Delta}{h^2}\, K_h^{\rm G}(\Delta) = -\frac{\Delta}{h^3\sqrt{2\pi}} \exp\!\left(-\frac{\Delta^2}{2h^2}\right)$$
+$$K_h^{\rm G\prime}(\Delta) = -\frac{\Delta}{h^2}\thinspace{} K_h^{\rm G}(\Delta) = -\frac{\Delta}{h^3\sqrt{2\pi}} \exp\negthinspace{}\left(-\frac{\Delta^2}{2h^2}\right)$$
 
 Properties:
 - Support: $(-\infty, \infty)$, truncated at $|\Delta| < 4h$ in the code
@@ -37,56 +37,62 @@ Properties:
 
 Define $q = |\Delta|/h$. The quintic B-spline (order 6, degree 5) is:
 
-$$K_h^{\rm Q}(\Delta) = \frac{1}{120\,h} \times \begin{cases}
+```math
+K_h^{\rm Q}(\Delta) = \frac{1}{120\,h} \times \begin{cases}
 (3-q)^5 - 6(2-q)^5 + 15(1-q)^5 & 0 \le q < 1 \\[4pt]
 (3-q)^5 - 6(2-q)^5 & 1 \le q < 2 \\[4pt]
 (3-q)^5 & 2 \le q < 3 \\[4pt]
 0 & q \ge 3
-\end{cases}$$
+\end{cases}
+```
 
-First derivative ($s = \operatorname{sgn}(\Delta)$):
+First derivative ($`s = \mathrm{sgn}(\Delta)`$):
 
-$$K_h^{\rm Q\prime}(\Delta) = \frac{s}{120\,h^2} \times \begin{cases}
+```math
+K_h^{\rm Q\prime}(\Delta) = \frac{s}{120\,h^2} \times \begin{cases}
 -5(3-q)^4 + 30(2-q)^4 - 75(1-q)^4 & 0 \le q < 1 \\[4pt]
 -5(3-q)^4 + 30(2-q)^4 & 1 \le q < 2 \\[4pt]
 -5(3-q)^4 & 2 \le q < 3 \\[4pt]
 0 & q \ge 3
-\end{cases}$$
+\end{cases}
+```
 
 Properties:
-- Support: $[-3h,\; 3h]$ (compact)
+- Support: $[-3h,\\; 3h]$ (compact)
 - Smoothness: $C^4$ (continuous through 4th derivative)
 - $K''/K$ is piecewise rational (ratio of degree-3 polynomials in $q$)
 
 ### 1.3 Compact Rational Kernel
 
-Define $R = 2.5\,h$ (support radius) and $\xi = \Delta/R$. With exponent $n = 4$:
+Define $R = 2.5\thinspace{}h$ (support radius) and $\xi = \Delta/R$. With exponent $n = 4$:
 
-$$K_h^{\rm R}(\Delta) = C_n \times \begin{cases}
+```math
+K_h^{\rm R}(\Delta) = C_n \times \begin{cases}
 \left(1 - \xi^2\right)^4 & |\Delta| < R \\[4pt]
 0 & |\Delta| \ge R
-\end{cases}$$
+\end{cases}
+```
 
 where the normalisation constant is
 
-$$C_n = \frac{1}{R \cdot B\!\left(\tfrac{1}{2},\, n+1\right)} = \frac{\Gamma(n + \tfrac{3}{2})}{R\,\sqrt{\pi}\;\Gamma(n+1)}$$
+$$C_n = \frac{1}{R \cdot B\negthinspace{}\left(\tfrac{1}{2},\thinspace{} n+1\right)} = \frac{\Gamma(n + \tfrac{3}{2})}{R\thinspace{}\sqrt{\pi}\\;\Gamma(n+1)}$$
 
-For $n = 4$: $B(\tfrac{1}{2}, 5) = \sqrt{\pi}\;\Gamma(5)/\Gamma(\tfrac{11}{2}) = \sqrt{\pi}\cdot 24 / (945\sqrt{\pi}/32) = 256/315$, so $C_4 = 315/(256\,R)$.
+For $n = 4$: $B(\tfrac{1}{2}, 5) = \sqrt{\pi}\\;\Gamma(5)/\Gamma(\tfrac{11}{2}) = \sqrt{\pi}\cdot 24 / (945\sqrt{\pi}/32) = 256/315$, so $C_4 = 315/(256\thinspace{}R)$.
 
 First derivative (within support $|\Delta| < R$):
 
-$$K_h^{\rm R\prime}(\Delta) = C_n \cdot n \cdot \frac{-2\Delta}{R^2}\left(1 - \xi^2\right)^{n-1} = -\frac{8\,C_4\,\Delta}{R^2}\left(1 - \frac{\Delta^2}{R^2}\right)^3$$
+$$K_h^{\rm R\prime}(\Delta) = C_n \cdot n \cdot \frac{-2\Delta}{R^2}\left(1 - \xi^2\right)^{n-1} = -\frac{8\thinspace{}C_4\thinspace{}\Delta}{R^2}\left(1 - \frac{\Delta^2}{R^2}\right)^3$$
 
 Properties:
-- Support: $[-R,\; R] = [-2.5h,\; 2.5h]$ (compact)
+- Support: $[-R,\\; R] = [-2.5h,\\; 2.5h]$ (compact)
 - Smoothness: $C^{2n-2} = C^6$ for $n=4$
 - $K''/K$ within support:
 
-$$\frac{K''(\Delta)}{K(\Delta)} = \frac{-2n}{R^2}\;\frac{1 - (2n-1)\xi^2}{1 - \xi^2}$$
+$$\frac{K''(\Delta)}{K(\Delta)} = \frac{-2n}{R^2}\\;\frac{1 - (2n-1)\xi^2}{1 - \xi^2}$$
 
 This is a **rational function** of $\xi^2 = \Delta^2/R^2$ with a simple pole at $|\Delta| = R$ (the support boundary). For $n=4$:
 
-$$\frac{K''}{K} = \frac{-8}{R^2}\;\frac{1 - 7\xi^2}{1 - \xi^2}$$
+$$\frac{K''}{K} = \frac{-8}{R^2}\\;\frac{1 - 7\xi^2}{1 - \xi^2}$$
 
 ---
 
@@ -98,7 +104,7 @@ For each evaluation point $x$, the code computes six sums (four without derivati
 $$n(x) = \sum_{j=1}^{N_p} K_h(x - X_j)$$
 
 **Coherent complex current:**
-$$j(x) = \sum_{j=1}^{N_p} K_h(x - X_j)\, e^{i\phi_j} = j_{\rm re}(x) + i\, j_{\rm im}(x)$$
+$$j(x) = \sum_{j=1}^{N_p} K_h(x - X_j)\thinspace{} e^{i\phi_j} = j_{\rm re}(x) + i\thinspace{} j_{\rm im}(x)$$
 
 where
 
@@ -112,21 +118,21 @@ Written out explicitly for each kernel:
 
 ### Gaussian:
 
-$$n^{\rm G}(x) = \frac{1}{h\sqrt{2\pi}} \sum_j \exp\!\left(-\frac{(x-X_j)^2}{2h^2}\right)$$
+$$n^{\rm G}(x) = \frac{1}{h\sqrt{2\pi}} \sum_j \exp\negthinspace{}\left(-\frac{(x-X_j)^2}{2h^2}\right)$$
 
-$$j_{\rm re}^{\rm G}(x) = \frac{1}{h\sqrt{2\pi}} \sum_j \exp\!\left(-\frac{(x-X_j)^2}{2h^2}\right) \cos\!\left(\frac{S_j}{\hbar}\right)$$
+$$j_{\rm re}^{\rm G}(x) = \frac{1}{h\sqrt{2\pi}} \sum_j \exp\negthinspace{}\left(-\frac{(x-X_j)^2}{2h^2}\right) \cos\negthinspace{}\left(\frac{S_j}{\hbar}\right)$$
 
-$$j_{\rm im}^{\prime\,\rm G}(x) = -\frac{1}{h^3\sqrt{2\pi}} \sum_j (x-X_j)\, \exp\!\left(-\frac{(x-X_j)^2}{2h^2}\right) \sin\!\left(\frac{S_j}{\hbar}\right)$$
+$$j_{\rm im}^{\prime\thinspace{}\rm G}(x) = -\frac{1}{h^3\sqrt{2\pi}} \sum_j (x-X_j)\thinspace{} \exp\negthinspace{}\left(-\frac{(x-X_j)^2}{2h^2}\right) \sin\negthinspace{}\left(\frac{S_j}{\hbar}\right)$$
 
 ### Quintic B-spline:
 
-$$n^{\rm Q}(x) = \frac{1}{120\,h} \sum_j W_5\!\left(\frac{|x - X_j|}{h}\right)$$
+$$n^{\rm Q}(x) = \frac{1}{120\thinspace{}h} \sum_j W_5\negthinspace{}\left(\frac{|x - X_j|}{h}\right)$$
 
 where $W_5(q)$ is the piecewise quintic defined in §1.2. Each term is a **polynomial** in $(x - X_j)/h$ within its piecewise region.
 
 ### Compact Rational:
 
-$$n^{\rm R}(x) = C_4 \sum_{j:\,|x-X_j|<R} \left(1 - \frac{(x-X_j)^2}{R^2}\right)^4$$
+$$n^{\rm R}(x) = C_4 \sum_{j:\thinspace{}|x-X_j|<R} \left(1 - \frac{(x-X_j)^2}{R^2}\right)^4$$
 
 This is a **sum of rational functions** — specifically, a sum of 8th-degree polynomials in $(x - X_j)$ divided by $R^8$. The sum is **exactly polynomial** in $x$ within any interval where the set of contributing particles doesn't change.
 
@@ -142,13 +148,13 @@ $$\sqrt{\hat\rho}(x) = \frac{|j(x)|}{\sqrt{n(x)}}, \qquad \ln\hat\rho(x) = 2\ln|
 
 ### 3.2 Current velocity
 
-$$v(x) = \frac{\hbar}{m}\,\operatorname{Im}\frac{j'(x)}{j(x)} = \frac{\hbar}{m}\;\frac{j'_{\rm im}\, j_{\rm re} - j'_{\rm re}\, j_{\rm im}}{j_{\rm re}^2 + j_{\rm im}^2}$$
+$$v(x) = \frac{\hbar}{m}\thinspace{}\mathrm{Im}\frac{j'(x)}{j(x)} = \frac{\hbar}{m}\\;\frac{j'_{\rm im}\thinspace{} j_{\rm re} - j'_{\rm re}\thinspace{} j_{\rm im}}{j_{\rm re}^2 + j_{\rm im}^2}$$
 
 ### 3.3 Quantum potential (GH WEIGH)
 
-$$Q_k = -\frac{\hbar^2}{m\,\sigma_{\rm gh}^2}\left(\frac{\sum_\alpha \omega_\alpha\, \sqrt{\hat\rho}(x_{k\alpha})}{\sqrt{\hat\rho}(x_{k0})} - 1\right)$$
+$$Q_k = -\frac{\hbar^2}{m\thinspace{}\sigma_{\rm gh}^2}\left(\frac{\sum_\alpha \omega_\alpha\thinspace{} \sqrt{\hat\rho}(x_{k\alpha})}{\sqrt{\hat\rho}(x_{k0})} - 1\right)$$
 
-where $x_{k\alpha} = X_k^{\rm class} + \sqrt{2}\,\sigma_{\rm gh}\,\xi_\alpha$ are the GH probe points and $x_{k0} = X_k^{\rm class}$ is the departure point.
+where $x_{k\alpha} = X_k^{\rm class} + \sqrt{2}\thinspace{}\sigma_{\rm gh}\thinspace{}\xi_\alpha$ are the GH probe points and $x_{k0} = X_k^{\rm class}$ is the departure point.
 
 ---
 
@@ -160,13 +166,13 @@ $$z = \frac{x_{CC}}{x_C^2} = -\frac{\rho'}{\rho} = -\frac{n'}{n}, \qquad w = \fr
 
 ### For the Gaussian kernel:
 
-$$z^{\rm G}(x) = -\frac{n^{\rm G\prime}(x)}{n^{\rm G}(x)} = \frac{\sum_j \frac{x-X_j}{h^2}\,e^{-(x-X_j)^2/2h^2}}{\sum_j e^{-(x-X_j)^2/2h^2}}$$
+$$z^{\rm G}(x) = -\frac{n^{\rm G\prime}(x)}{n^{\rm G}(x)} = \frac{\sum_j \frac{x-X_j}{h^2}\thinspace{}e^{-(x-X_j)^2/2h^2}}{\sum_j e^{-(x-X_j)^2/2h^2}}$$
 
 This is a **ratio of transcendental functions** of particle positions — the exponentials never simplify to rational form for finite $N_p$.
 
 ### For the compact rational kernel:
 
-$$z^{\rm R}(x) = -\frac{n^{\rm R\prime}(x)}{n^{\rm R}(x)} = \frac{\sum_{j:\,|x-X_j|<R}\; \frac{8(x-X_j)}{R^2}\left(1 - \frac{(x-X_j)^2}{R^2}\right)^3}{\sum_{j:\,|x-X_j|<R}\; \left(1 - \frac{(x-X_j)^2}{R^2}\right)^4}$$
+$$z^{\rm R}(x) = -\frac{n^{\rm R\prime}(x)}{n^{\rm R}(x)} = \frac{\sum_{j:\thinspace{}|x-X_j|<R}\\; \frac{8(x-X_j)}{R^2}\left(1 - \frac{(x-X_j)^2}{R^2}\right)^3}{\sum_{j:\thinspace{}|x-X_j|<R}\\; \left(1 - \frac{(x-X_j)^2}{R^2}\right)^4}$$
 
 This is a **ratio of polynomials in $(x - X_j)$** — a genuine rational function of the particle positions. As $N_p \to \infty$, it converges to the continuum $-\rho'/\rho$, which is itself a rational function of C-derivatives (Poirier's $z$).
 

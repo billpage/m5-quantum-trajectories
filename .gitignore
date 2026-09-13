@@ -28,6 +28,9 @@ my_project_env/
 .DS_Store
 Thumbs.db
 
+# Node (linter render-pass dependencies, installed locally by contributors)
+node_modules/
+
 # IDE
 .vscode/
 .idea/

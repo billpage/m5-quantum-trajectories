@@ -14,9 +14,9 @@ and both arrive at formulations involving **two velocity fields** that can be id
 
 ### The Polar Decomposition (Madelung)
 
-Writing $\psi = \sqrt{\rho}\,e^{iS/\hbar}$, one obtains:
+Writing $\psi = \sqrt{\rho}\thinspace{}e^{iS/\hbar}$, one obtains:
 
-- **Continuity equation:** $\frac{\partial \rho}{\partial t} + \nabla \cdot (\rho\, \mathbf{v}) = 0$, where $\mathbf{v} = \nabla S / m$
+- **Continuity equation:** $\frac{\partial \rho}{\partial t} + \nabla \cdot (\rho\thinspace{} \mathbf{v}) = 0$, where $\mathbf{v} = \nabla S / m$
 - **Quantum Hamilton-Jacobi equation:** $\frac{\partial S}{\partial t} + \frac{(\nabla S)^2}{2m} + V + Q = 0$, where $Q = -\frac{\hbar^2}{2m\sqrt{\rho}}\nabla^2\sqrt{\rho}$
 
 ### Holland's Key Move: The $\sigma_\pm$ Decomposition
@@ -25,7 +25,7 @@ Holland introduces the two real functions:
 
 $$\sigma_\pm = S \pm \frac{\hbar}{2}\ln\rho$$
 
-so that $\psi = e^{(1+i)\sigma_+/2\hbar}\,e^{(-1+i)\sigma_-/2\hbar}$. The SchrÃ¶dinger equation then becomes **two coupled HJ-like equations**:
+so that $\psi = e^{(1+i)\sigma_+/2\hbar}\thinspace{}e^{(-1+i)\sigma_-/2\hbar}$. The SchrÃ¶dinger equation then becomes **two coupled HJ-like equations**:
 
 $$\frac{\partial \sigma_+}{\partial t} + \frac{1}{2m}(\nabla\sigma_+)^2 + Q_+ + V = 0$$
 
@@ -39,9 +39,9 @@ $$Q_\pm = \mp\frac{\hbar}{2m}\nabla^2\sigma_\mp - \frac{1}{4m}[\nabla(\sigma_+ -
 
 Nelson postulates that the particle follows an ItÃ´ stochastic differential equation:
 
-$$dx(t) = b(x(t),t)\,dt + dw(t)$$
+$$dx(t) = b(x(t),t)\thinspace{}dt + dw(t)$$
 
-where $w$ is a Wiener process with $\mathbb{E}_t[dw^i\,dw^j] = \frac{\hbar}{m}\delta^{ij}\,dt$ (diffusion coefficient $\nu = \frac{\hbar}{2m}$). He then introduces:
+where $w$ is a Wiener process with $`\mathbb{E}_t[dw^i\,dw^j] = \frac{\hbar}{m}\delta^{ij}\,dt`$ (diffusion coefficient $\nu = \frac{\hbar}{2m}$). He then introduces:
 
 - **Forward drift (mean forward velocity):** $b^i = Dx^i = v^i + u^i$
 - **Backward drift (mean backward velocity):** $b_*^i = D_*x^i = v^i - u^i$
@@ -87,39 +87,39 @@ This is the mathematical heart of the comparison. Both frameworks give rise to a
 
 Holland derives the following pair in Â§4.2 of his paper by setting $v_a^i = v_\pm^i$ in the general transport equation (4.9):
 
-$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\,v_+^i) = +\frac{\hbar}{2m}\nabla^2\rho \tag{FPE+}$$
+$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\thinspace{}v_+^i) = +\frac{\hbar}{2m}\nabla^2\rho \qquad\text{(FPE+)}$$
 
-$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\,v_-^i) = -\frac{\hbar}{2m}\nabla^2\rho \tag{FPE-}$$
+$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\thinspace{}v_-^i) = -\frac{\hbar}{2m}\nabla^2\rho \qquad\text{(FPE-)}$$
 
 Let us unpack these. With $\nu = \hbar/(2m)$:
 
 **Equation (FPE+): The Forward Fokker-Planck Equation**
 
-$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\,v_+) = \nu\,\nabla^2\rho$$
+$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\thinspace{}v_+) = \nu\thinspace{}\nabla^2\rho$$
 
 Expanding the divergence and rearranging:
 
-$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(\rho\,v_+) + \nu\,\nabla^2\rho$$
+$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(\rho\thinspace{}v_+) + \nu\thinspace{}\nabla^2\rho$$
 
 This is the **forward Fokker-Planck equation** (also called the forward Kolmogorov equation) for a diffusion process with drift $v_+ = b$ (Nelson's forward drift) and diffusion coefficient $\nu$. In standard form:
 
-$$\mathcal{L}\rho = \frac{\partial\rho}{\partial t} + \nabla\cdot(b\,\rho) - \nu\,\nabla^2\rho = 0$$
+$$\mathcal{L}\rho = \frac{\partial\rho}{\partial t} + \nabla\cdot(b\thinspace{}\rho) - \nu\thinspace{}\nabla^2\rho = 0$$
 
 This governs the **forward-in-time** evolution of the probability density $\rho(x,t)$.
 
 **Equation (FPE-): The Backward Kolmogorov Equation (Adjoint)**
 
-$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\,v_-) = -\nu\,\nabla^2\rho$$
+$$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\thinspace{}v_-) = -\nu\thinspace{}\nabla^2\rho$$
 
 Rearranging:
 
-$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(\rho\,v_-) - \nu\,\nabla^2\rho$$
+$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(\rho\thinspace{}v_-) - \nu\thinspace{}\nabla^2\rho$$
 
-Now, expanding $\nabla\cdot(\rho\,v_-)$ = $v_-\cdot\nabla\rho + \rho\,\nabla\cdot v_-$ and using the osmotic equation $u = \nu\,\nabla\ln\rho$ (so $\nabla\cdot v_+ - \nabla\cdot v_- = 2\nabla\cdot u$), one can show this is equivalent to the **backward Kolmogorov equation** â€” the adjoint of the forward FPE â€” for the backward drift $v_- = b_*$.
+Now, expanding $\nabla\cdot(\rho\thinspace{}v_-)$ = $v_-\cdot\nabla\rho + \rho\thinspace{}\nabla\cdot v_-$ and using the osmotic equation $u = \nu\thinspace{}\nabla\ln\rho$ (so $\nabla\cdot v_+ - \nabla\cdot v_- = 2\nabla\cdot u$), one can show this is equivalent to the **backward Kolmogorov equation** â€” the adjoint of the forward FPE â€” for the backward drift $v_- = b_*$.
 
 The adjoint relationship is precisely what your Screenshot101 shows: if the forward operator is $\mathcal{L}\rho = \partial_t\rho + \partial_x(b\rho) - \nu\partial_{xx}\rho$, then the **adjoint operator** acting on a test function $f$ is:
 
-$$\mathcal{L}^*f = -\partial_t f - b\,\partial_x f - \nu\,\partial_{xx}f = 0$$
+$$\mathcal{L}^*f = -\partial_t f - b\thinspace{}\partial_x f - \nu\thinspace{}\partial_{xx}f = 0$$
 
 In the Nelson/Holland context, the forward FPE uses drift $b = v_+$ with **positive** diffusion, and the adjoint (backward Kolmogorov) uses drift $b_* = v_-$ with the sign of diffusion **reversed**. The two equations are not independent â€” they are adjoints of one another, and their consistency is guaranteed by the SchrÃ¶dinger equation.
 
@@ -127,21 +127,21 @@ In the Nelson/Holland context, the forward FPE uses drift $b = v_+$ with **posit
 
 In Nelson's framework, the forward SDE is:
 
-$$dx = b(x,t)\,dt + dw, \qquad dw\sim\mathcal{N}(0,2\nu\,dt)$$
+$$dx = b(x,t)\thinspace{}dt + dw, \qquad dw\sim\mathcal{N}(0,2\nu\thinspace{}dt)$$
 
 The Fokker-Planck equation for the transition density of this ItÃ´ process is:
 
-$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(b\,\rho) + \nu\,\nabla^2\rho$$
+$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(b\thinspace{}\rho) + \nu\thinspace{}\nabla^2\rho$$
 
 which is exactly Holland's (FPE+) with $b = v_+$.
 
 By time-reversal symmetry, Nelson also considers the **backward** SDE:
 
-$$dx = b_*(x,t)\,dt + dw_*, \qquad dw_*\sim\mathcal{N}(0,2\nu\,dt)$$
+$$dx = b_*(x,t)\thinspace{}dt + dw_*, \qquad dw_*\sim\mathcal{N}(0,2\nu\thinspace{}dt)$$
 
 where $dw_*$ is a backward Wiener process. The associated backward Fokker-Planck (i.e., the backward Kolmogorov equation) is:
 
-$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(b_*\,\rho) - \nu\,\nabla^2\rho$$
+$$\frac{\partial\rho}{\partial t} = -\nabla\cdot(b_*\thinspace{}\rho) - \nu\thinspace{}\nabla^2\rho$$
 
 which is exactly Holland's (FPE-) with $b_* = v_-$.
 
@@ -151,15 +151,15 @@ which is exactly Holland's (FPE-) with $b_* = v_-$.
 
 $$2\frac{\partial\rho}{\partial t} + \nabla\cdot[\rho(v_+ + v_-)] = 0$$
 
-$$\Rightarrow\quad \frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\,v) = 0$$
+$$\Rightarrow\quad \frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\thinspace{}v) = 0$$
 
 This is the **continuity equation** â€” conservation of probability carried by the current velocity $v = \frac{1}{2}(v_+ + v_-) = \nabla S/m$. This is the first Madelung equation (1.2 in Holland's paper).
 
 **Subtracting** (FPE+) from (FPE-):
 
-$$\nabla\cdot[\rho(v_+ - v_-)] = 2\nu\,\nabla^2\rho$$
+$$\nabla\cdot[\rho(v_+ - v_-)] = 2\nu\thinspace{}\nabla^2\rho$$
 
-$$\Rightarrow\quad \nabla\cdot(\rho\,u) = \nu\,\nabla^2\rho$$
+$$\Rightarrow\quad \nabla\cdot(\rho\thinspace{}u) = \nu\thinspace{}\nabla^2\rho$$
 
 which, using $u = \nu\nabla\ln\rho$, is an identity â€” the **osmotic equation**. This is automatically satisfied and provides no new information; it defines the relationship between osmotic velocity and probability density.
 
@@ -179,13 +179,13 @@ Holland's theory is purely deterministic, but its formal structure maps directly
 
 ### 4.1 The Forward SDE (associated with $\sigma_+$)
 
-$$dX_t = v_+(X_t, t)\,dt + \sqrt{2\nu}\,dW_t^{(+)}$$
+$$dX_t = v_+(X_t, t)\thinspace{}dt + \sqrt{2\nu}\thinspace{}dW_t^{(+)}$$
 
 where $v_+ = \frac{1}{m}\nabla\sigma_+$ and $\nu = \frac{\hbar}{2m}$, with $W^{(+)}$ a forward Wiener process.
 
 ### 4.2 The Backward SDE (associated with $\sigma_-$)
 
-$$dX_t = v_-(X_t, t)\,dt + \sqrt{2\nu}\,dW_t^{(-)}$$
+$$dX_t = v_-(X_t, t)\thinspace{}dt + \sqrt{2\nu}\thinspace{}dW_t^{(-)}$$
 
 where $v_- = \frac{1}{m}\nabla\sigma_-$ and $W^{(-)}$ is a backward Wiener process.
 
@@ -205,13 +205,13 @@ The forward SDE generates the forward Fokker-Planck (FPE+), and the backward SDE
 
 Using $v = \frac{1}{2}(v_+ + v_-)$ (current velocity) and $u = \frac{1}{2}(v_+ - v_-)$ (osmotic velocity), the coupled SDE pair can also be written as a single SDE with two drift components:
 
-$$dX_t = [v(X_t,t) + u(X_t,t)]\,dt + \sqrt{2\nu}\,dW_t \qquad\text{(forward)}$$
+$$dX_t = [v(X_t,t) + u(X_t,t)]\thinspace{}dt + \sqrt{2\nu}\thinspace{}dW_t \qquad\text{(forward)}$$
 
-$$dX_t = [v(X_t,t) - u(X_t,t)]\,dt + \sqrt{2\nu}\,dW_t^* \qquad\text{(backward)}$$
+$$dX_t = [v(X_t,t) - u(X_t,t)]\thinspace{}dt + \sqrt{2\nu}\thinspace{}dW_t^* \qquad\text{(backward)}$$
 
 with the constraint (from the osmotic equation):
 
-$$u^i = \nu\,\frac{\nabla^i\rho}{\rho} = \nu\,\nabla^i\ln\rho$$
+$$u^i = \nu\thinspace{}\frac{\nabla^i\rho}{\rho} = \nu\thinspace{}\nabla^i\ln\rho$$
 
 and the current equation $\partial_t\rho = -\nabla\cdot(v\rho)$ enforcing the overall probability conservation.
 
@@ -219,7 +219,7 @@ and the current equation $\partial_t\rho = -\nabla\cdot(v\rho)$ enforcing the ov
 
 Nelson's stochastic Newton equation provides the dynamical closure:
 
-$$m\,a = -\nabla V$$
+$$m\thinspace{}a = -\nabla V$$
 
 where the **mean acceleration** is:
 
@@ -239,9 +239,9 @@ The complete stochastic model of Holland's bi-HJ theory consists of:
 
 **SDEs (in ItÃ´ form, 1D for clarity):**
 
-$$dX_t = \frac{1}{m}\frac{\partial\sigma_+}{\partial x}(X_t,t)\,dt + \sqrt{\frac{\hbar}{m}}\,dW_t \qquad\text{(forward process)}$$
+$$dX_t = \frac{1}{m}\frac{\partial\sigma_+}{\partial x}(X_t,t)\thinspace{}dt + \sqrt{\frac{\hbar}{m}}\thinspace{}dW_t \qquad\text{(forward process)}$$
 
-$$dX_t = \frac{1}{m}\frac{\partial\sigma_-}{\partial x}(X_t,t)\,dt + \sqrt{\frac{\hbar}{m}}\,d\widetilde{W}_t \qquad\text{(backward process)}$$
+$$dX_t = \frac{1}{m}\frac{\partial\sigma_-}{\partial x}(X_t,t)\thinspace{}dt + \sqrt{\frac{\hbar}{m}}\thinspace{}d\widetilde{W}_t \qquad\text{(backward process)}$$
 
 **Field equations (coupling):**
 
@@ -253,9 +253,9 @@ where $Q_\pm = \mp\frac{\hbar}{2m}\partial_{xx}\sigma_\mp - \frac{1}{4m}[\partia
 
 **Transport equations (consistency):**
 
-$$\partial_t\rho + \partial_x(\rho\,v_+) = \nu\,\partial_{xx}\rho \qquad\text{(forward Fokker-Planck)}$$
+$$\partial_t\rho + \partial_x(\rho\thinspace{}v_+) = \nu\thinspace{}\partial_{xx}\rho \qquad\text{(forward Fokker-Planck)}$$
 
-$$\partial_t\rho + \partial_x(\rho\,v_-) = -\nu\,\partial_{xx}\rho \qquad\text{(backward Kolmogorov)}$$
+$$\partial_t\rho + \partial_x(\rho\thinspace{}v_-) = -\nu\thinspace{}\partial_{xx}\rho \qquad\text{(backward Kolmogorov)}$$
 
 with $\rho = e^{(\sigma_+ - \sigma_-)/\hbar}$.
 
@@ -279,7 +279,7 @@ The velocities do **not** simply reverse sign individually. Instead, each maps t
 
 **Nelson:** $\rho = |\psi|^2$ is the probability density of the Markov process at time $t$. It is conserved along the current velocity via the continuity equation. The osmotic velocity encodes the gradient of $\rho$ and ensures the forward/backward Fokker-Planck pair is satisfied.
 
-**Holland:** $\rho = e^{(\sigma_+ - \sigma_-)/\hbar}$ is determined by the **action difference**, not by trajectory bunching. The individual congruence densities $\rho_0\,J_\pm^{-1}$ do not reproduce $\rho$ (proved in Â§4.2). The peaks of $\rho$ occur where $v_+ = v_-$ (i.e., where osmotic velocity vanishes), not where trajectories cluster.
+**Holland:** $\rho = e^{(\sigma_+ - \sigma_-)/\hbar}$ is determined by the **action difference**, not by trajectory bunching. The individual congruence densities $\rho_0\thinspace{}J_\pm^{-1}$ do not reproduce $\rho$ (proved in Â§4.2). The peaks of $\rho$ occur where $v_+ = v_-$ (i.e., where osmotic velocity vanishes), not where trajectories cluster.
 
 ### 5.3 Determinism vs. Stochasticity
 
@@ -291,17 +291,17 @@ The velocities do **not** simply reverse sign individually. Instead, each maps t
 
 For a free Gaussian wavefunction at rest:
 
-$$\rho(x,t) = (2\pi\sigma^2)^{-1/2}e^{-x^2/2\sigma^2}, \qquad S(x,t) = \frac{\hbar\kappa t\,x^2}{4\sigma^2} - \frac{\hbar}{2}\arctan(\kappa t)$$
+$$\rho(x,t) = (2\pi\sigma^2)^{-1/2}e^{-x^2/2\sigma^2}, \qquad S(x,t) = \frac{\hbar\kappa t\thinspace{}x^2}{4\sigma^2} - \frac{\hbar}{2}\arctan(\kappa t)$$
 
 where $\sigma = \sigma_0(1+\kappa^2 t^2)^{1/2}$ and $\kappa = \hbar/(2m\sigma_0^2)$.
 
 **Holland's bi-HJ trajectories:**
 
-$$q_\pm(q_{\pm 0}, t) = q_{\pm 0}(1+\kappa^2 t^2)^{1/2}\,e^{\mp\arctan(\kappa t)}$$
+$$q_\pm(q_{\pm 0}, t) = q_{\pm 0}(1+\kappa^2 t^2)^{1/2}\thinspace{}e^{\mp\arctan(\kappa t)}$$
 
 The exponential factors $e^{\mp\arctan(\kappa t)}$ exhibit dissipative/anti-dissipative behaviour â€” one congruence contracts, the other expands. This is the hallmark of the forward/backward process asymmetry.
 
-**Nelson's stochastic trajectories** would be sample paths of the SDE with drift $v_+ = \kappa t\,x/(1+\kappa^2 t^2) + \hbar x/(2m\sigma^2)$ and diffusion $\sqrt{\hbar/m}$, producing the same statistical distribution.
+**Nelson's stochastic trajectories** would be sample paths of the SDE with drift $v_+ = \kappa t\thinspace{}x/(1+\kappa^2 t^2) + \hbar x/(2m\sigma^2)$ and diffusion $\sqrt{\hbar/m}$, producing the same statistical distribution.
 
 ---
 
@@ -309,7 +309,7 @@ The exponential factors $e^{\mp\arctan(\kappa t)}$ exhibit dissipative/anti-diss
 
 1. **Numerical methods:** Holland's coupled bi-HJ equations could be solved numerically as a system of SDEs (even though the underlying theory is deterministic). The forward/backward SDE pair provides a natural Monte Carlo sampling framework. This is closely related to the **forward-backward stochastic differential equation (FBSDE)** framework used in mathematical finance and optimal control.
 
-2. **The FBSDE connection:** The structure $dX_t = b(X_t,t)dt + \sigma\,dW_t$ coupled with a backward equation for $\sigma_-$ or $Y_t$ is precisely the structure of an FBSDE system. The stochastic HJ equation (Holland's bi-HJ) plays the role of the backward component. Recent work by Pavon, Pal, and others on SchrÃ¶dinger bridges makes this connection explicit.
+2. **The FBSDE connection:** The structure $dX_t = b(X_t,t)dt + \sigma\thinspace{}dW_t$ coupled with a backward equation for $\sigma_-$ or $Y_t$ is precisely the structure of an FBSDE system. The stochastic HJ equation (Holland's bi-HJ) plays the role of the backward component. Recent work by Pavon, Pal, and others on SchrÃ¶dinger bridges makes this connection explicit.
 
 3. **Stochastic optimal control:** The SchrÃ¶dinger equation can be recast as a stochastic optimal control problem (Zambrini, 1986; Pavon & Wakolbinger, 1991). In that framework, $\sigma_+$ and $\sigma_-$ are the value functions of the forward and backward control problems, and the Fokker-Planck/backward Kolmogorov pair is the optimality system. Holland's bi-HJ equations are exactly the Hamilton-Jacobi-Bellman equations of this control problem.
 

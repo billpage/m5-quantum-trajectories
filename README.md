@@ -18,11 +18,11 @@ where $j_h$ is the complex "coherent average" of neighbouring phase factors $e^{
 
 Each particle carries position $X$ and phase $S$. The dynamics proceed through:
 
-1. **Phase gradient velocity:** $v = (\hbar/m)\,\mathrm{Im}(j'/j)$ — computed directly from neighbours' phases, no grid or finite differences
+1. **Phase gradient velocity:** $v = (\hbar/m)\thinspace{}\mathrm{Im}(j'/j)$ — computed directly from neighbours' phases, no grid or finite differences
 2. **Classical advection:** $X_{\mathrm{class}} = X + v \cdot dt$
 3. **Stochastic diffusion (STEER):** Gauss–Hermite quadrature probes weighted by $\sqrt{\rho}$ implement the forward osmotic drift, maintaining quantum equilibrium $\rho = |\psi|^2$
 4. **Quantum potential (WEIGH):** The same GH candidate cloud simultaneously extracts the quantum potential $Q$ via the mean-weight ratio — no density differentiation required
-5. **Phase update:** $S \to S - (V + Q + \tfrac{1}{2}mv^2)\,dt$
+5. **Phase update:** $S \to S - (V + Q + \tfrac{1}{2}mv^2)\thinspace{}dt$
 
 The algorithm is fully gridless and derivative-free: the only spatial information comes from inter-particle phase comparisons.
 
@@ -67,6 +67,27 @@ src/            — Python implementation
 - Python 3.8+
 - NumPy
 - Optional: CuPy (GPU acceleration via `cupy-cuda12x`)
+
+## Linting
+
+Markdown math in `docs/` and this README is checked by `tools/check_md_math.py`
+(vendored from [GitHubLinter](https://github.com/billpage/GitHubLinter)) —
+it catches LaTeX that GitHub's math pipeline silently mis-renders (backslash
+escapes stripped by CommonMark, `_` after punctuation misread as emphasis,
+`\begin{cases}` blocks that need a fenced form, unsupported macros).
+
+```bash
+# Static + GFM + structural passes only (no node required):
+python3 tools/check_md_math.py docs/ README.md
+
+# All five passes, including KaTeX/MathJax render checks:
+npm install --no-save katex mathjax-full
+python3 tools/check_md_math.py docs/ README.md
+```
+
+Also runs as a GitHub Action (`.github/workflows/check_md_math.yml`) on every
+push or PR touching a `.md` file. Run it locally before packaging a patch —
+a patch that fails this check isn't ready to hand over.
 
 ## References
 
