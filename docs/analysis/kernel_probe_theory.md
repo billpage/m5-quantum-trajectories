@@ -1,42 +1,8 @@
 # Kernel and Probe Selection for the ψ-KDE Swarmalator
 
+> Develops the theory of kernel and probe selection for the gridless swarmalator algorithm (§7 of the companion Swarmalator document): the compact rational kernel used in ψ-KDE field estimates, and Gauss–Jacobi probe nodes as an alternative to the original Gaussian-kernel / Gauss–Hermite-probe combination. Builds on [`kernel_expressions.md`](kernel_expressions.md).
+
 ## Compact Rational Kernels and Gauss–Jacobi Probes
-
----
-
-### Abstract
-
-The gridless swarmalator algorithm (§7 of the companion Swarmalator document) depends on two
-mathematical objects: a **kernel** K_h(Δ) used in the ψ-KDE field estimates, and a **probe
-distribution** used to generate the candidate cloud for STEER/WEIGH.  The original implementation
-uses a Gaussian kernel and Gauss–Hermite (GH) probe nodes.  This document develops the theory
-behind two alternatives — the compact rational kernel K(Δ) = C₄(1 − (Δ/R)²)⁴ and Gauss–Jacobi
-probe quadrature — and analyses why they are structurally better matched to the algorithm's
-requirements.
-
-The key results are:
-
-1. **Kernel second moment:** For a given support radius, the compact rational kernel has a smaller
-   second moment μ₂ than the Gaussian, reducing the leading-order MISE bias in the density estimate
-   and the O(h²) bias in the WEIGH quantum potential readout.
-
-2. **Algebraic closure:** The compact rational kernel produces kernel sums that are rational functions
-   of particle separations.  The Poirier C-coordinate variables (z = −ρ'/ρ, w = 3(ρ'/ρ)² − ρ''/ρ)
-   are themselves rational functions of these sums.  The Gaussian kernel yields transcendental
-   (exponential) sums, breaking this algebraic compatibility.
-
-3. **Smoothness:** With exponent n = 4, the compact kernel is C⁶ at the support boundary — smooth
-   enough that K, K', K'', and K''' are all continuous, and the quantum potential Q =
-   −(ℏ²/2m)(√ρ)''/√ρ inherits smoothness from the density estimate.
-
-4. **Bounded probes:** Gauss–Jacobi quadrature nodes lie on [−1, 1], giving a hard bound on probe
-   displacement.  Gauss–Hermite nodes are unbounded, with the outermost node scaling as √(2K+1).
-   For states with small spatial extent (e.g. the HO ground state with σ ≈ 0.71), unbounded probes
-   can reach far into the exponential tail, where ψ-KDE estimates are noisy.
-
-5. **Variance matching:** The Jacobi probe radius R_probe = σ_gh √(2n+3) is chosen so that the
-   probe distribution's second moment equals σ_gh² — the same as for Gauss–Hermite.  This ensures
-   the WEIGH readout formula Q = −(ℏ²/mσ²)(M₊ − 1) is unchanged.
 
 ---
 

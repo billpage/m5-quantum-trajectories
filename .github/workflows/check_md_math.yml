@@ -6,16 +6,18 @@ on:
     paths:
       - "**.md"
       - "tools/check_md_math.py"
+      - "tools/check_abstracts.py"
       - ".github/workflows/check_md_math.yml"
   pull_request:
     branches: [main]
     paths:
       - "**.md"
       - "tools/check_md_math.py"
+      - "tools/check_abstracts.py"
       - ".github/workflows/check_md_math.yml"
 
 jobs:
-  check:
+  check-math:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,3 +35,15 @@ jobs:
 
       - name: Run markdown math linter
         run: python tools/check_md_math.py docs/ README.md
+
+  check-abstracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run abstract-consistency linter
+        run: python tools/check_abstracts.py docs/algorithm docs/supplement docs/analysis

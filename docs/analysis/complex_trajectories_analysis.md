@@ -1,5 +1,7 @@
 # Complex Quantum Trajectories and the M5/Schrödinger Bridge Connection
 
+> Examines Yang & Han's complex-valued Hamilton–Jacobi mechanics (Found. Phys. 50, 2020) — writing ψ = e^{iW/ℏ} with W complex rather than the standard polar decomposition — against Holland's dismissal of the approach, and identifies structural parallels with M5: the imaginary part of the complex velocity matches the Nelson osmotic velocity that M5 extracts via √ρ-selection, and Yang–Han's two point sets (intersections vs. projections) parallel M5's forward/backward dual-readout architecture. Closes with what each framework gets that the other doesn't.
+
 ## Yang & Han's Complex Mechanics in Context
 
 ---

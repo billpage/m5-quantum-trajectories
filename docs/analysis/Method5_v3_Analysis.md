@@ -1,16 +1,10 @@
 # Method 5 v3: Dual-Weight Particle Algorithm for Holland's Bi-Hamilton–Jacobi Equations
 
-## Complete Mathematical Analysis
-
----
+> *Historical.* Method 5 v3, a self-consistent particle method for the full Holland bi-Hamilton–Jacobi system: two coupled real Hamilton–Jacobi equations for the forward/backward action functions σ±. Extends the v2 dual-readout framework (√ρ-selection, mean-weight quantum potential) with a backward weight 1/√ρ probing the anti-diffusive sector, a log-density mean-weight for machine-precision osmotic-velocity divergence, and mirror particles for KDE boundary correction. The log-density approach is identified as numerically superior to direct 1/√ρ evaluation, avoiding exponential ill-conditioning. Superseded by [`../algorithm/NelsonMechanics_SchrodingerBridge_Algorithm.md`](../algorithm/NelsonMechanics_SchrodingerBridge_Algorithm.md) §7.3; kept for the record of what v3 established and why it changed.
 
 **Status: historical.** This note records the v3 dual-weight algorithm (backward weight, log-density mean-weight, mirror particles) as it stood before the deterministic Gauss–Hermite consolidation. It is superseded by [`../algorithm/NelsonMechanics_SchrodingerBridge_Algorithm.md`](../algorithm/NelsonMechanics_SchrodingerBridge_Algorithm.md) §7.3, which carries the current algorithm forward. Kept for the record of what v3 established and why it changed, not as a current spec.
 
-### Abstract
-
-We present Method 5 v3, a self-consistent particle method for solving the full Holland bi-Hamilton–Jacobi (bi-HJ) system, which decomposes the Schrödinger equation into two coupled real Hamilton–Jacobi equations for the forward and backward action functions σ±. The algorithm extends the v2 dual-readout framework (√ρ-selection for osmotic drift, mean weight for quantum potential) with three new ingredients: (i) a **backward weight** 1/√ρ that probes the anti-diffusive (backward Schrödinger potential) sector, (ii) a **log-density mean-weight** that extracts the osmotic velocity divergence u' = ∂ₓu with machine-precision accuracy for Gaussian-like densities, and (iii) **mirror particles** for boundary correction of KDE density estimates. The log-density approach is identified as the numerically superior strategy for extracting backward information, avoiding the exponential ill-conditioning inherent in direct 1/√ρ evaluation. Together, these mechanisms provide particle-level access to both Holland quantum potentials Q± and all components of the inter-congruence coupling, using a single forward-evolving ensemble with no second or third particle set required.
-
-We prove the key theorems, analyse convergence and variance, present numerical validation on the harmonic oscillator ground state, and connect the full structure to the Schrödinger bridge FBSDE framework.
+## Complete Mathematical Analysis
 
 ---
 

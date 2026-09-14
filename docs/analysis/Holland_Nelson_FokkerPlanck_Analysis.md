@@ -1,16 +1,18 @@
 # Holland's biHamilton-Jacobi Theory and Nelson's Stochastic Mechanics: A Comparative Analysis
 
+> A comparative analysis of Holland's bi-Hamilton–Jacobi decomposition and Nelson's stochastic mechanics, both starting from the same Schrödinger equation. Derives and compares the forward/backward Fokker–Planck pair (Holland's equation 4.17), the backward Kolmogorov equation, and the coupled SDE system each framework implies, establishing the precise correspondence between Holland's σ± action functions and Nelson's forward/backward drift velocities.
+
 ## Focusing on Fokker-Planck, Backward Kolmogorov, and Coupled SDEs
 
 ---
 
-## 1. Overview: Two Decompositions of the SchrÃ¶dinger Equation
+## 1. Overview: Two Decompositions of the Schrödinger Equation
 
-Both Holland and Nelson begin from the same starting point â€” the SchrÃ¶dinger equation:
+Both Holland and Nelson begin from the same starting point — the Schrödinger equation:
 
 $$i\hbar \frac{\partial \psi}{\partial t} = -\frac{\hbar^2}{2m}\nabla^2\psi + V\psi$$
 
-and both arrive at formulations involving **two velocity fields** that can be identified with one another. The crucial difference is ontological and structural: Nelson *adds* a stochastic mechanism to quantum mechanics, while Holland reformulates the quantum state *deterministically* as a pair of coupled Hamilton-Jacobi-like equations. Yet the formal kinematic skeleton â€” in particular, the velocity fields, their relationship to probability, and the Fokker-Planck structure â€” is shared.
+and both arrive at formulations involving **two velocity fields** that can be identified with one another. The crucial difference is ontological and structural: Nelson *adds* a stochastic mechanism to quantum mechanics, while Holland reformulates the quantum state *deterministically* as a pair of coupled Hamilton-Jacobi-like equations. Yet the formal kinematic skeleton — in particular, the velocity fields, their relationship to probability, and the Fokker-Planck structure — is shared.
 
 ### The Polar Decomposition (Madelung)
 
@@ -25,7 +27,7 @@ Holland introduces the two real functions:
 
 $$\sigma_\pm = S \pm \frac{\hbar}{2}\ln\rho$$
 
-so that $\psi = e^{(1+i)\sigma_+/2\hbar}\thinspace{}e^{(-1+i)\sigma_-/2\hbar}$. The SchrÃ¶dinger equation then becomes **two coupled HJ-like equations**:
+so that $\psi = e^{(1+i)\sigma_+/2\hbar}\thinspace{}e^{(-1+i)\sigma_-/2\hbar}$. The Schrödinger equation then becomes **two coupled HJ-like equations**:
 
 $$\frac{\partial \sigma_+}{\partial t} + \frac{1}{2m}(\nabla\sigma_+)^2 + Q_+ + V = 0$$
 
@@ -37,7 +39,7 @@ $$Q_\pm = \mp\frac{\hbar}{2m}\nabla^2\sigma_\mp - \frac{1}{4m}[\nabla(\sigma_+ -
 
 ### Nelson's Key Move: The Stochastic Decomposition
 
-Nelson postulates that the particle follows an ItÃ´ stochastic differential equation:
+Nelson postulates that the particle follows an Itô stochastic differential equation:
 
 $$dx(t) = b(x(t),t)\thinspace{}dt + dw(t)$$
 
@@ -62,7 +64,7 @@ $$v_+^i = v^i + u^i = b^i \quad \text{(Nelson's forward drift)}$$
 
 $$v_-^i = v^i - u^i = b_*^i \quad \text{(Nelson's backward drift)}$$
 
-Holland himself notes this identification explicitly in Â§2 of his paper, acknowledging that "within [the stochastic] scheme, the velocities (2.5) are interpreted as forward and backward drift velocities, $u_i = v_+^i - v_-^i = (\hbar/m)\nabla_i\ln\rho$ is the osmotic velocity, the local mean $v_i = \frac{1}{2}(v_+^i + v_-^i)$ is the de Broglie-Bohm velocity, and equations (4.17) below are the corresponding Fokker-Planck equations."
+Holland himself notes this identification explicitly in §2 of his paper, acknowledging that "within [the stochastic] scheme, the velocities (2.5) are interpreted as forward and backward drift velocities, $u_i = v_+^i - v_-^i = (\hbar/m)\nabla_i\ln\rho$ is the osmotic velocity, the local mean $v_i = \frac{1}{2}(v_+^i + v_-^i)$ is the de Broglie-Bohm velocity, and equations (4.17) below are the corresponding Fokker-Planck equations."
 
 The key quantities then relate as:
 
@@ -85,7 +87,7 @@ This is the mathematical heart of the comparison. Both frameworks give rise to a
 
 ### 3.1 Holland's Fokker-Planck Pair (Equation 4.17)
 
-Holland derives the following pair in Â§4.2 of his paper by setting $v_a^i = v_\pm^i$ in the general transport equation (4.9):
+Holland derives the following pair in §4.2 of his paper by setting $v_a^i = v_\pm^i$ in the general transport equation (4.9):
 
 $$\frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\thinspace{}v_+^i) = +\frac{\hbar}{2m}\nabla^2\rho \qquad\text{(FPE+)}$$
 
@@ -115,13 +117,13 @@ Rearranging:
 
 $$\frac{\partial\rho}{\partial t} = -\nabla\cdot(\rho\thinspace{}v_-) - \nu\thinspace{}\nabla^2\rho$$
 
-Now, expanding $\nabla\cdot(\rho\thinspace{}v_-)$ = $v_-\cdot\nabla\rho + \rho\thinspace{}\nabla\cdot v_-$ and using the osmotic equation $u = \nu\thinspace{}\nabla\ln\rho$ (so $\nabla\cdot v_+ - \nabla\cdot v_- = 2\nabla\cdot u$), one can show this is equivalent to the **backward Kolmogorov equation** â€” the adjoint of the forward FPE â€” for the backward drift $v_- = b_*$.
+Now, expanding $\nabla\cdot(\rho\thinspace{}v_-)$ = $v_-\cdot\nabla\rho + \rho\thinspace{}\nabla\cdot v_-$ and using the osmotic equation $u = \nu\thinspace{}\nabla\ln\rho$ (so $\nabla\cdot v_+ - \nabla\cdot v_- = 2\nabla\cdot u$), one can show this is equivalent to the **backward Kolmogorov equation** — the adjoint of the forward FPE — for the backward drift $v_- = b_*$.
 
 The adjoint relationship is precisely what your Screenshot101 shows: if the forward operator is $\mathcal{L}\rho = \partial_t\rho + \partial_x(b\rho) - \nu\partial_{xx}\rho$, then the **adjoint operator** acting on a test function $f$ is:
 
 $$\mathcal{L}^*f = -\partial_t f - b\thinspace{}\partial_x f - \nu\thinspace{}\partial_{xx}f = 0$$
 
-In the Nelson/Holland context, the forward FPE uses drift $b = v_+$ with **positive** diffusion, and the adjoint (backward Kolmogorov) uses drift $b_* = v_-$ with the sign of diffusion **reversed**. The two equations are not independent â€” they are adjoints of one another, and their consistency is guaranteed by the SchrÃ¶dinger equation.
+In the Nelson/Holland context, the forward FPE uses drift $b = v_+$ with **positive** diffusion, and the adjoint (backward Kolmogorov) uses drift $b_* = v_-$ with the sign of diffusion **reversed**. The two equations are not independent — they are adjoints of one another, and their consistency is guaranteed by the Schrödinger equation.
 
 ### 3.2 Nelson's Derivation of the Same Pair
 
@@ -129,7 +131,7 @@ In Nelson's framework, the forward SDE is:
 
 $$dx = b(x,t)\thinspace{}dt + dw, \qquad dw\sim\mathcal{N}(0,2\nu\thinspace{}dt)$$
 
-The Fokker-Planck equation for the transition density of this ItÃ´ process is:
+The Fokker-Planck equation for the transition density of this Itô process is:
 
 $$\frac{\partial\rho}{\partial t} = -\nabla\cdot(b\thinspace{}\rho) + \nu\thinspace{}\nabla^2\rho$$
 
@@ -153,7 +155,7 @@ $$2\frac{\partial\rho}{\partial t} + \nabla\cdot[\rho(v_+ + v_-)] = 0$$
 
 $$\Rightarrow\quad \frac{\partial\rho}{\partial t} + \nabla\cdot(\rho\thinspace{}v) = 0$$
 
-This is the **continuity equation** â€” conservation of probability carried by the current velocity $v = \frac{1}{2}(v_+ + v_-) = \nabla S/m$. This is the first Madelung equation (1.2 in Holland's paper).
+This is the **continuity equation** — conservation of probability carried by the current velocity $v = \frac{1}{2}(v_+ + v_-) = \nabla S/m$. This is the first Madelung equation (1.2 in Holland's paper).
 
 **Subtracting** (FPE+) from (FPE-):
 
@@ -161,11 +163,11 @@ $$\nabla\cdot[\rho(v_+ - v_-)] = 2\nu\thinspace{}\nabla^2\rho$$
 
 $$\Rightarrow\quad \nabla\cdot(\rho\thinspace{}u) = \nu\thinspace{}\nabla^2\rho$$
 
-which, using $u = \nu\nabla\ln\rho$, is an identity â€” the **osmotic equation**. This is automatically satisfied and provides no new information; it defines the relationship between osmotic velocity and probability density.
+which, using $u = \nu\nabla\ln\rho$, is an identity — the **osmotic equation**. This is automatically satisfied and provides no new information; it defines the relationship between osmotic velocity and probability density.
 
 ### 3.4 The Source Terms and Non-Conservation Along Individual Flows
 
-A critical result in Holland's paper (Â§4.2) is that **neither the $v_+$ nor the $v_-$ trajectories individually conserve probability**. Each Fokker-Planck equation has a source term ($\pm\nu\nabla^2\rho$). The probability density $\rho$ cannot be identified with the trajectory density of either congruence. Instead, $\rho$ is determined by the **difference in action functions**:
+A critical result in Holland's paper (§4.2) is that **neither the $v_+$ nor the $v_-$ trajectories individually conserve probability**. Each Fokker-Planck equation has a source term ($\pm\nu\nabla^2\rho$). The probability density $\rho$ cannot be identified with the trajectory density of either congruence. Instead, $\rho$ is determined by the **difference in action functions**:
 
 $$\rho = e^{(\sigma_+ - \sigma_-)/\hbar}$$
 
@@ -191,7 +193,7 @@ where $v_- = \frac{1}{m}\nabla\sigma_-$ and $W^{(-)}$ is a backward Wiener proce
 
 ### 4.3 The Coupling
 
-These are not independent SDEs â€” they describe the **same** particle. The coupling comes through the fact that $v_+$ and $v_-$ are both determined by $\sigma_+$ and $\sigma_-$, which in turn satisfy the coupled bi-HJ system (2.2)â€“(2.3). In explicit Eulerian form, the coupling structure is:
+These are not independent SDEs — they describe the **same** particle. The coupling comes through the fact that $v_+$ and $v_-$ are both determined by $\sigma_+$ and $\sigma_-$, which in turn satisfy the coupled bi-HJ system (2.2)–(2.3). In explicit Eulerian form, the coupling structure is:
 
 **Coupled PDE system for the drift fields:**
 
@@ -229,7 +231,7 @@ In terms of $v$ and $u$, this becomes (Nelson 1966, Eq. 30):
 
 $$m\left[\frac{\partial v}{\partial t} + (v\cdot\nabla)v - (u\cdot\nabla)u - \nu\nabla^2 u\right] = -\nabla V$$
 
-This is equivalent to the quantum Hamilton-Jacobi equation and provides the dynamical content that couples the two SDEs. In Holland's formulation, this same content is encoded in the coupled acceleration equations (3.3)â€“(3.4).
+This is equivalent to the quantum Hamilton-Jacobi equation and provides the dynamical content that couples the two SDEs. In Holland's formulation, this same content is encoded in the coupled acceleration equations (3.3)–(3.4).
 
 ### 4.6 Summary: The Coupled SDE System
 
@@ -237,7 +239,7 @@ The complete stochastic model of Holland's bi-HJ theory consists of:
 
 **State:** the pair $(\sigma_+(x,t), \sigma_-(x,t))$ or equivalently $(S(x,t), R(x,t))$ where $R = \frac{\hbar}{2}\ln\rho$.
 
-**SDEs (in ItÃ´ form, 1D for clarity):**
+**SDEs (in Itô form, 1D for clarity):**
 
 $$dX_t = \frac{1}{m}\frac{\partial\sigma_+}{\partial x}(X_t,t)\thinspace{}dt + \sqrt{\frac{\hbar}{m}}\thinspace{}dW_t \qquad\text{(forward process)}$$
 
@@ -279,13 +281,13 @@ The velocities do **not** simply reverse sign individually. Instead, each maps t
 
 **Nelson:** $\rho = |\psi|^2$ is the probability density of the Markov process at time $t$. It is conserved along the current velocity via the continuity equation. The osmotic velocity encodes the gradient of $\rho$ and ensures the forward/backward Fokker-Planck pair is satisfied.
 
-**Holland:** $\rho = e^{(\sigma_+ - \sigma_-)/\hbar}$ is determined by the **action difference**, not by trajectory bunching. The individual congruence densities $\rho_0\thinspace{}J_\pm^{-1}$ do not reproduce $\rho$ (proved in Â§4.2). The peaks of $\rho$ occur where $v_+ = v_-$ (i.e., where osmotic velocity vanishes), not where trajectories cluster.
+**Holland:** $\rho = e^{(\sigma_+ - \sigma_-)/\hbar}$ is determined by the **action difference**, not by trajectory bunching. The individual congruence densities $\rho_0\thinspace{}J_\pm^{-1}$ do not reproduce $\rho$ (proved in §4.2). The peaks of $\rho$ occur where $v_+ = v_-$ (i.e., where osmotic velocity vanishes), not where trajectories cluster.
 
 ### 5.3 Determinism vs. Stochasticity
 
-**Holland:** The bi-HJ trajectories are **deterministic**. The two congruences $q_\pm^i(q_{\pm 0}, t)$ are solutions to coupled ODEs (Newton-like second-order equations 3.3â€“3.4). There is no noise term. The Fokker-Planck structure emerges from the non-conservation of probability along each individual congruence (the "source" terms), but this is a feature of the decomposition, not of any physical randomness.
+**Holland:** The bi-HJ trajectories are **deterministic**. The two congruences $q_\pm^i(q_{\pm 0}, t)$ are solutions to coupled ODEs (Newton-like second-order equations 3.3–3.4). There is no noise term. The Fokker-Planck structure emerges from the non-conservation of probability along each individual congruence (the "source" terms), but this is a feature of the decomposition, not of any physical randomness.
 
-**Nelson:** The trajectories are **stochastic**. The Wiener process $dW$ represents genuine physical noise â€” a "subquantum" Brownian motion. The Fokker-Planck equations are *bona fide* transport equations for the probability of a random process. Nelson's 2012 review acknowledges that this leads to difficulties: stochastic mechanics gives wrong predictions for correlations at different times (the entanglement problem), and Nelson himself concluded that "stochastic mechanics is an approximation to a correct theory of quantum mechanics as emergent."
+**Nelson:** The trajectories are **stochastic**. The Wiener process $dW$ represents genuine physical noise — a "subquantum" Brownian motion. The Fokker-Planck equations are *bona fide* transport equations for the probability of a random process. Nelson's 2012 review acknowledges that this leads to difficulties: stochastic mechanics gives wrong predictions for correlations at different times (the entanglement problem), and Nelson himself concluded that "stochastic mechanics is an approximation to a correct theory of quantum mechanics as emergent."
 
 ### 5.4 The Gaussian Example
 
@@ -299,7 +301,7 @@ where $\sigma = \sigma_0(1+\kappa^2 t^2)^{1/2}$ and $\kappa = \hbar/(2m\sigma_0^
 
 $$q_\pm(q_{\pm 0}, t) = q_{\pm 0}(1+\kappa^2 t^2)^{1/2}\thinspace{}e^{\mp\arctan(\kappa t)}$$
 
-The exponential factors $e^{\mp\arctan(\kappa t)}$ exhibit dissipative/anti-dissipative behaviour â€” one congruence contracts, the other expands. This is the hallmark of the forward/backward process asymmetry.
+The exponential factors $e^{\mp\arctan(\kappa t)}$ exhibit dissipative/anti-dissipative behaviour — one congruence contracts, the other expands. This is the hallmark of the forward/backward process asymmetry.
 
 **Nelson's stochastic trajectories** would be sample paths of the SDE with drift $v_+ = \kappa t\thinspace{}x/(1+\kappa^2 t^2) + \hbar x/(2m\sigma^2)$ and diffusion $\sqrt{\hbar/m}$, producing the same statistical distribution.
 
@@ -309,9 +311,9 @@ The exponential factors $e^{\mp\arctan(\kappa t)}$ exhibit dissipative/anti-diss
 
 1. **Numerical methods:** Holland's coupled bi-HJ equations could be solved numerically as a system of SDEs (even though the underlying theory is deterministic). The forward/backward SDE pair provides a natural Monte Carlo sampling framework. This is closely related to the **forward-backward stochastic differential equation (FBSDE)** framework used in mathematical finance and optimal control.
 
-2. **The FBSDE connection:** The structure $dX_t = b(X_t,t)dt + \sigma\thinspace{}dW_t$ coupled with a backward equation for $\sigma_-$ or $Y_t$ is precisely the structure of an FBSDE system. The stochastic HJ equation (Holland's bi-HJ) plays the role of the backward component. Recent work by Pavon, Pal, and others on SchrÃ¶dinger bridges makes this connection explicit.
+2. **The FBSDE connection:** The structure $dX_t = b(X_t,t)dt + \sigma\thinspace{}dW_t$ coupled with a backward equation for $\sigma_-$ or $Y_t$ is precisely the structure of an FBSDE system. The stochastic HJ equation (Holland's bi-HJ) plays the role of the backward component. Recent work by Pavon, Pal, and others on Schrödinger bridges makes this connection explicit.
 
-3. **Stochastic optimal control:** The SchrÃ¶dinger equation can be recast as a stochastic optimal control problem (Zambrini, 1986; Pavon & Wakolbinger, 1991). In that framework, $\sigma_+$ and $\sigma_-$ are the value functions of the forward and backward control problems, and the Fokker-Planck/backward Kolmogorov pair is the optimality system. Holland's bi-HJ equations are exactly the Hamilton-Jacobi-Bellman equations of this control problem.
+3. **Stochastic optimal control:** The Schrödinger equation can be recast as a stochastic optimal control problem (Zambrini, 1986; Pavon & Wakolbinger, 1991). In that framework, $\sigma_+$ and $\sigma_-$ are the value functions of the forward and backward control problems, and the Fokker-Planck/backward Kolmogorov pair is the optimality system. Holland's bi-HJ equations are exactly the Hamilton-Jacobi-Bellman equations of this control problem.
 
 4. **Nelson's own retreat:** In his 2012 review, Nelson acknowledged that stochastic mechanics fails for multi-time correlations and entanglement. He wrote: "The most natural explanation is that stochastic mechanics is an approximation to a correct theory of quantum mechanics as emergent." Holland's deterministic reformulation sidesteps these issues entirely, since it is an exact reformulation, not an additional physical hypothesis.
 
@@ -321,7 +323,7 @@ The exponential factors $e^{\mp\arctan(\kappa t)}$ exhibit dissipative/anti-diss
 
 | Feature | Nelson (1966) | Holland (2021) |
 |---------|--------------|----------------|
-| **Nature of trajectories** | Stochastic (Markov/ItÃ´) | Deterministic (Lagrangian congruences) |
+| **Nature of trajectories** | Stochastic (Markov/Itô) | Deterministic (Lagrangian congruences) |
 | **Forward velocity** $v_+$ | Forward drift $b$ of SDE | $\nabla\sigma_+/m$ |
 | **Backward velocity** $v_-$ | Backward drift $b_*$ | $\nabla\sigma_-/m$ |
 | **Diffusion coefficient** | $\nu = \hbar/(2m)$ | N/A (no noise), but $\nu$ appears in FPE source |
@@ -331,7 +333,7 @@ The exponential factors $e^{\mp\arctan(\kappa t)}$ exhibit dissipative/anti-diss
 | **Time reversal** | $b \leftrightarrow b_*$, $v\to -v$ | $\sigma_\pm' = -\sigma_\mp$ (non-standard exchange) |
 | **Dynamical equation** | Stochastic Newton: $ma = -\nabla V$ | Coupled bi-HJ: Eqs. (2.2)-(2.3) |
 | **Conservation** | $\rho$ conserved along $v$ | $\rho$ NOT conserved along $v_+$ or $v_-$ individually |
-| **Exactness** | Approximate (fails for entanglement) | Exact reformulation of SchrÃ¶dinger |
+| **Exactness** | Approximate (fails for entanglement) | Exact reformulation of Schrödinger |
 
 ---
 

@@ -89,6 +89,18 @@ Also runs as a GitHub Action (`.github/workflows/check_md_math.yml`) on every
 push or PR touching a `.md` file. Run it locally before packaging a patch —
 a patch that fails this check isn't ready to hand over.
 
+Each `docs/{algorithm,supplement,analysis}/README.md` repeats its own
+per-file description as a blockquote under that file's `# Title`, so a
+reader who lands on the file directly still gets the same orientation.
+`tools/check_abstracts.py` (adapted from
+[wpmw](https://github.com/billpage/wpmw)'s `check_abstracts.py`, generalized
+to parse bulleted indexes as well as numbered ladders) checks the two
+copies haven't drifted apart:
+
+```bash
+python3 tools/check_abstracts.py docs/algorithm docs/supplement docs/analysis
+```
+
 ## References
 
 - Nelson, E. (1966). Derivation of the Schrödinger Equation from Newtonian Mechanics. *Phys. Rev.* 150, 1079.

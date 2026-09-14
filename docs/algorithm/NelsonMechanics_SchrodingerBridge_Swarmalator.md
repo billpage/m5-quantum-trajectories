@@ -1,20 +1,8 @@
 # Quantum Swarmalator Algorithm: Gridless Coherent Particle Dynamics
 
+> A gridless reformulation of M5: each particle senses its local phase environment via a coherent kernel average of its neighbours' phases, computing velocity directly as vᵢ = (ℏ/m) Im(j'ᵢ/jᵢ) with no spatial grid, binning, interpolation, or finite differences. All M5 theorems, readouts, and backward-channel diagnostics carry over unchanged from the companion grid-based algorithm document; only the field-estimation method differs. Named for its kinship with the swarmalator literature (O'Keeffe, Hong & Strogatz 2017), where the quantum action S plays the role of the internal phase oscillator and the coherent kernel average is the coupling function.
+
 ## A ψ-KDE Alternative to the Grid-Based Method 5
-
----
-
-### Abstract
-
-We present a gridless particle algorithm for quantum dynamics in which each particle determines its velocity by sensing its local phase environment through a coherent kernel average of its neighbours' phases. The algorithm — a "quantum swarmalator" — replaces the grid-based field estimation pipeline of the Method 5 (M5) algorithm with direct particle-to-particle kernel sums, eliminating all spatial grids, binning, interpolation, and finite differences. The velocity of particle i is:
-
-    vᵢ = (ℏ/m) Im(j'ᵢ / jᵢ)
-
-where jᵢ = Σⱼ K_h(Xᵢ−Xⱼ) exp(iSⱼ/ℏ) is the coherent average of neighbouring phase factors and j'ᵢ = Σⱼ K'_h(Xᵢ−Xⱼ) exp(iSⱼ/ℏ) is its derivative-kernel counterpart. The selection weights for the osmotic drift and the quantum potential are computed from the same coherent framework via the ψ-KDE estimator ψ̂ = j/√n evaluated at candidate and GH probe positions.
-
-The "swarmalator" designation reflects the algorithm's conceptual kinship with the swarmalator literature (O'Keeffe, Hong & Strogatz, 2017), where active agents couple their spatial motion to an internal phase oscillator. Here, the "internal phase" is the quantum action S, the "coupling function" is the coherent kernel average, and the emergent collective behaviour reproduces the Schrödinger equation.
-
-This document parallels the structure of the companion grid-based analysis (*NelsonMechanics_SchrodingerBridge_Algorithm.md*). All theorems, readouts, and backward-channel diagnostics carry over; the difference is purely in how the underlying field estimates are computed.
 
 ---
 

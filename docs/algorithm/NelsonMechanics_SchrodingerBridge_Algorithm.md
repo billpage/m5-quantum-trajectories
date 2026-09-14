@@ -1,14 +1,8 @@
 # Stochastic Mechanics and the Schrödinger Bridge: A Derivative-Free Particle Algorithm for Quantum Dynamics
 
+> The current M5 algorithm: a derivative-free particle method for quantum dynamics grounded in Nelson's stochastic mechanics and the Schrödinger-bridge FBSDE framework. Each particle carries a position X and action phase S; three readouts from a shared Gauss–Hermite candidate cloud implement the full Holland bi-Hamilton–Jacobi structure with no spatial differentiation of the density. Four advances over the original formulation: fixed GH quadrature nodes (deterministic STEER/WEIGH with controlled polynomial error), a log-density mean weight (machine-precision osmotic-velocity divergence), mirror particles (2–4× better boundary-tail Q estimates), and backward-channel readouts (Q̃ and the full bi-HJ coupling from the same forward ensemble, no second species or backward simulation needed). See the companion supplement for the Hackebill–Poirier classification and Wasserstein-dynamics context.
+
 ## Complete Mathematical Analysis
-
----
-
-### Abstract
-
-We present a derivative-free particle algorithm for quantum dynamics grounded in Nelson's stochastic mechanics and the Schrödinger bridge FBSDE framework. The algorithm (Method 5, updated formulation) evolves a finite ensemble of particles, each carrying a position X and an accumulated action phase S, using three readouts from a shared Gauss–Hermite (GH) candidate cloud to implement the complete Holland bi-Hamilton–Jacobi (bi-HJ) structure without any spatial differentiation of the density. Four key advances over the original formulation are incorporated: (i) **fixed Gauss–Hermite (GH) quadrature nodes** replace random Brownian candidates, converting both the STEER and WEIGH operations into deterministic quadrature with controlled polynomial error; (ii) a **log-density mean weight** extracts the osmotic velocity divergence u′ = ∂ₓu with machine-precision accuracy for Gaussian-like densities, preserving the polynomial structure that GH quadrature exploits; (iii) **mirror particles** correct the KDE boundary bias at distribution tails, improving the forward quantum potential Q estimate by 2–4×; and (iv) **backward-channel readouts** provide the anti-diffusive quantum potential Q̃ and Holland's full bi-HJ coupling as derivative-free diagnostic and monitoring quantities, all from the same forward-evolving ensemble.
-
-The central insight is that Holland's backward Schrödinger potential — inaccessible through direct simulation of the ill-posed backward heat equation — is encoded in the curvature of ln ρ, which GH quadrature evaluates exactly when ln ρ is polynomial. The algorithm thus implements the complete bi-HJ structure (two coupled Hamilton–Jacobi equations for the forward and backward action functions σ±) using a single particle ensemble, with no second species, no backward simulation, and no spatial differentiation of the density. A companion supplement (*Stochastic Mechanics and the Schrödinger Bridge: Contextual Analysis, Bridge Interpretation, and Open Questions*) provides the Hackebill–Poirier classification, Wasserstein dynamics, and related literature.
 
 ---
 

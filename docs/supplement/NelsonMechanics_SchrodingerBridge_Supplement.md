@@ -1,5 +1,7 @@
 # Stochastic Mechanics and the Schrödinger Bridge: Contextual Analysis, Bridge Interpretation, and Open Questions
 
+> Companion supplement to the main algorithm document, continuing its section numbering from §17: situates M5 within the Hackebill–Poirier CHV/DHV/bipolar taxonomy of hydrodynamic quantum-trajectory methods (M5 is a sparse DHV method accessing both forward and backward bi-HJ sectors, a combination outside their classification), develops the Wasserstein-geometry / Newton's-second-law interpretation of the √ρ-selection dynamics, surveys related derivative-estimation literature, and records open questions and future directions.
+
 ## Supplement to: *Stochastic Mechanics and the Schrödinger Bridge: A Derivative-Free Particle Algorithm for Quantum Dynamics*
 
 ---

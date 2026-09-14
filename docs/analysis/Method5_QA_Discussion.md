@@ -1,26 +1,8 @@
 # Method 5: Time Symmetry, Schrödinger Bridges, and Wasserstein Dynamics
 
+> A Q&A discussion building intuition for why selecting Brownian candidates proportional to √ρ is sufficient to reproduce full quantum dynamics. Moves from Method 5's time-reversal symmetry, through its connection to the Sinkhorn/IPFP algorithm for Schrödinger bridges, to its interpretation as Newton's second law on Wasserstein space.
+
 ## A Q&A Discussion on the √ρ-Selection Algorithm and Its Deep Mathematical Connections
-
----
-
-### Preamble
-
-This document records a series of questions and answers exploring the conceptual and mathematical foundations of **Method 5**, the √ρ-selection particle algorithm for quantum dynamics. The discussion moves from the algorithm's time-reversal symmetry, through its connection to the Sinkhorn/IPFP algorithm for Schrödinger bridges, to its interpretation as Newton's second law on Wasserstein space. Throughout, the aim is to build intuition for *why* the simple mechanism of selecting Brownian candidates proportional to √ρ is sufficient to reproduce full quantum dynamics.
-
-#### Key Project References
-
-> **Note:** This discussion was written against early versions of the algorithm documents (`Method5_Mathematical_Analysis.md` v1 and `method5_selection.py`) that predate the current repository. Section references below (§3, §7, etc.) refer to those earlier documents. The current algorithm specification is `NelsonMechanics_SchrodingerBridge_Algorithm.md`; the proofs and derivations cited here have been consolidated there and in the companion supplement.
-
-| Document | Description |
-|----------|-------------|
-| `Method5_Mathematical_Analysis.md` | Complete mathematical derivation and proof that √ρ-selection induces the correct osmotic drift (historical, not in repository; superseded by `NelsonMechanics_SchrodingerBridge_Algorithm.md`) |
-| `method5_selection.py` | Python implementation comparing Method 5 against Method 4 (explicit osmotic drift) and the Schrödinger FFT reference (historical, not in repository; superseded by `m5psi_kde_catstate.py`) |
-| `FBSDE_SchrodingerBridge_Nelson_Holland.md` | The triangular relationship between FBSDEs, Schrödinger bridges, Nelson's stochastic mechanics, and Holland's bi-HJ theory |
-| `Holland_Nelson_FokkerPlanck_Analysis.md` | Detailed comparative analysis of Holland's and Nelson's formulations, focusing on the Fokker–Planck pair and coupled SDEs |
-| `HollandEliminating2111_09235.pdf` | Holland (2021), "Eliminating the wavefunction from quantum dynamics: the bi-Hamilton–Jacobi theory" |
-| `1966_ENelson_Derivation_of_SchrodEq_from_NewtMech.pdf` | Nelson (1966), the foundational paper on stochastic mechanics |
-| `Nelson_2012_J__Phys___Conf__Ser__361_012011_2.pdf` | Nelson (2012), review of stochastic mechanics including his acknowledgement of its limitations |
 
 ---
 

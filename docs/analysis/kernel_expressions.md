@@ -1,4 +1,7 @@
 # Kernel Expressions for the ψ-KDE Swarmalator
+
+> Reference for the ψ-KDE swarmalator's kernel functions: closed-form expressions and first derivatives for the Gaussian, quintic B-spline, and compact rational kernels, the resulting ψ-KDE kernel sums (density, coherent complex current, and their derivatives), the derived fields (reconstructed wavefunction, current velocity, GH-WEIGH quantum potential), the Poirier C-derivative connection, and a K″/K structure comparison across all three kernels.
+
 ## Gaussian, Quintic B-spline, and Compact Rational
 
 ---
