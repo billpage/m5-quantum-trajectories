@@ -4,14 +4,6 @@ Extended analysis for the M5 project: context, alternative derivations,
 and open questions that support the core specifications in
 `docs/algorithm/` without being needed to implement them.
 
-This directory currently has one indexed file.
-`supplement_section_phase_ontology.md` is not indexed here yet — it has
-no title of its own and its `## 24.` heading collides with the numbered
-supplement's own (unrelated) §24, and it isn't referenced from anywhere
-else in the repo. It needs a decision on where it belongs before it can
-get an index entry and title-blockquote; see the project chat for
-details.
-
 ## Contents
 
 - **[`NelsonMechanics_SchrodingerBridge_Supplement.md`](NelsonMechanics_SchrodingerBridge_Supplement.md)** —
@@ -22,4 +14,9 @@ details.
   sectors, a combination outside their classification), develops the
   Wasserstein-geometry / Newton's-second-law interpretation of the
   √ρ-selection dynamics, surveys related derivative-estimation
-  literature, and records open questions and future directions.
+  literature, and records open questions and future directions. Also
+  argues that the phase S is best understood as a connection variable —
+  gauge- and frame-dependent in its absolute value, but constitutive of
+  motion through its spatial pattern dS — and develops the resulting
+  picture of the swarmalator ensemble as a network of coupled clocks
+  (§24).
